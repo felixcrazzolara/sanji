@@ -1,0 +1,75 @@
+#pragma once
+
+#include <QWidget>
+#include <QPen>
+#include <memory>
+#include <vector>
+#include <tuple>
+#include <Eigen/Dense>
+#include "RenderArea.hpp"
+#include "Colors.hpp"
+
+namespace sanji_ {
+
+/* Type definitions */
+template <typename T>
+using shared_ptr = std::shared_ptr<T>;
+template <typename T>
+using vector     = std::vector<T>;
+using VectorXd   = Eigen::VectorXd;
+using MatrixXd   = Eigen::MatrixXd;
+using vec_ptr    = shared_ptr<VectorXd>;
+using mat_ptr    = shared_ptr<MatrixXd>;
+template <class... Types>
+using tuple      = std::tuple<Types...>;
+using Color      = sanji::colors::Color;
+
+struct LimitsInfo {
+    double xmin;
+    double xmax;
+    double ymin;
+    double ymax;
+    
+    bool   xmin_init;
+    bool   xmax_init;
+    bool   ymin_init;
+    bool   ymax_init;
+    
+    bool   xmin_set;
+    bool   xmax_set;
+    bool   ymin_set;
+    bool   ymax_set;
+};
+
+class Figure : public QWidget {
+
+Q_OBJECT
+
+public:
+
+/* Constructor and destructor */
+Figure(const QString& fig_name="");
+virtual ~Figure();
+
+void plot(const VectorXd& x, const MatrixXd& y, const int priority, const char line_style, const Color color);
+
+protected:
+
+void resizeEvent(QResizeEvent* event) override;
+
+private:
+
+friend RenderArea;
+
+QString                                          fig_name_;
+int                                              current_render_area_idx_;
+vector<RenderArea*>                              render_areas_;
+vector<LimitsInfo>                               limits_info_;
+vector<vector<tuple<uint,vec_ptr,mat_ptr,QPen>>> data_;
+
+};
+
+/* Type definitions */
+using sh_fig_ptr = shared_ptr<Figure>;
+
+};
