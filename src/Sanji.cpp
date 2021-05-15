@@ -36,11 +36,23 @@ sh_fig_ptr figure(const QString fig_name) {
 }
 
 void plot(const VectorXd& x, const MatrixXd& y, const int priority, const char line_style, const Color color) {
+    if (x.rows() == 0) return;
+
     // Make sure that a figure is available
     if (gbl_current_fig_index == -1) figure();
 
     // Plot the data
     gbl_fig_holder[gbl_current_fig_index]->plot(x,y,priority,line_style,color);
+}
+
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority, const char line_style, const Color color) {
+    if (x.rows() == 0) return;
+
+    // Make sure that a figure is available
+    if (gbl_current_fig_index == -1) figure();
+
+    // Plot the data
+    gbl_fig_holder[gbl_current_fig_index]->quiver(x,y,u,v,priority,line_style,color);
 }
 
 };

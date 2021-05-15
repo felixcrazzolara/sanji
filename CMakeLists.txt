@@ -26,15 +26,23 @@ add_library(sanji SHARED
     include/RenderArea.hpp
 )
 
-add_executable(example1
-    examples/example1.cpp
+add_executable(SimpleLinePlot
+    examples/SimpleLinePlot.cpp
+)
+
+add_executable(Quiver
+    examples/Quiver.cpp
 )
 
 target_include_directories(sanji
     PUBLIC include
 )
 
-target_link_libraries(example1
+target_link_libraries(SimpleLinePlot
+    PRIVATE sanji
+)
+
+target_link_libraries(Quiver
     PRIVATE sanji
 )
 

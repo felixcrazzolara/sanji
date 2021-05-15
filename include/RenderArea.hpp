@@ -29,7 +29,10 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit RenderArea(QWidget* parent, const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>* data, const LimitsInfo* limits_info);
+explicit RenderArea(QWidget* parent,
+                    const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data,
+                    const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data,
+                    const LimitsInfo*                                                 limits_info);
 
 protected:
 
@@ -37,8 +40,9 @@ void paintEvent(QPaintEvent* event) override;
 
 private:
 
-const LimitsInfo*                               limits_info_;
-const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>* data_;
+const LimitsInfo*                                                 limits_info_;
+const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data_;
+const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data_;
 
 };
 
