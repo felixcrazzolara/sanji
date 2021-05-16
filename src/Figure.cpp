@@ -162,6 +162,8 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
         limits_info_[current_render_area_idx_].ymax_value = ymax;
         limits_info_[current_render_area_idx_].value_init = true;
     }
+
+    // Possibly update the axis limits
     if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin)
         limits_info_[current_render_area_idx_].xmin = xmin - 0.025*(xmax-xmin);
     if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax)
@@ -227,6 +229,18 @@ void Figure::checkRenderArea() {
         render_areas_.back()->setGeometry(QRect(geom.width()*0.05,geom.height()*0.05,geom.width()*0.9,geom.height()*0.9));
         current_render_area_idx_ = 0;
     }
+}
+
+void Figure::setAxisRatio(const std::string& axis_ratio) {
+    if (axis_ratio == "equal")
+        if (current_render_area_idx_ != -1) {
+            const double min = std::min(limits_info_[current_render_area_idx_].xmin,limits_info_[current_render_area_idx_].ymin);
+            const double max = std::max(limits_info_[current_render_area_idx_].xmax,limits_info_[current_render_area_idx_].ymax);
+            limits_info_[current_render_area_idx_].xmin = min;
+            limits_info_[current_render_area_idx_].ymin = min;
+            limits_info_[current_render_area_idx_].xmax = max;
+            limits_info_[current_render_area_idx_].ymax = max;
+        }
 }
 
 };

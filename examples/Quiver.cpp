@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
     // Plot the data
     sanji::figure("Simple data");
     sanji::quiver(x,y,u,v,10,'-',RED);
+    sanji::setAxisRatio("equal");
 
     // Execute the application
     app.exec();

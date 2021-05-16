@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <tuple>
+#include <string>
 #include <Eigen/Dense>
 #include "RenderArea.hpp"
 #include "Colors.hpp"
@@ -53,9 +54,10 @@ public:
 Figure(const QString& fig_name="");
 virtual ~Figure();
 
+/* Miscellaneous */
 void plot(const VectorXd& x, const MatrixXd& y, const int priority, const char line_style, const Color color);
-
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority, const char line_style, const Color color);
+void setAxisRatio(const std::string& axis_ratio);
 
 protected:
 
