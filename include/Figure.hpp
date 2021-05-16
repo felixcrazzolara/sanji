@@ -6,6 +6,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <unordered_map>
 #include <Eigen/Dense>
 #include "RenderArea.hpp"
 #include "Colors.hpp"
@@ -23,7 +24,7 @@ using vec_ptr    = shared_ptr<VectorXd>;
 using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
-using Color      = sanji::colors::Color;
+using Style      = std::unordered_map<std::string,int>;
 
 struct LimitsInfo {
     double xmin;
@@ -55,8 +56,8 @@ Figure(const QString& fig_name="");
 virtual ~Figure();
 
 /* Miscellaneous */
-void plot(const VectorXd& x, const MatrixXd& y, const int priority, const char line_style, const Color color);
-void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority, const char line_style, const Color color);
+void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority);
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);
 void setAxisRatio(const std::string& axis_ratio);
 
 protected:

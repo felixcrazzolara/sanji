@@ -11,7 +11,7 @@ using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
 
 int main(int argc, char* argv[]) {
-    // Initialize this as a QT application
+    // Initialize this as a Qt application
     QApplication app(argc, argv);
     sanji::init();
 
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 
     // Plot the data
     sanji::figure("Simple data");
-    sanji::quiver(x,y,u,v,10,'-',RED);
+    sanji::quiver(x,y,u,v,{{"line_style",'-'},{"color",RED}},10);
     sanji::setAxisRatio("equal");
 
     // Execute the application

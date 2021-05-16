@@ -4,26 +4,26 @@
 #include <QApplication>
 #include <Eigen/Dense>
 #include <string>
+#include <unordered_map>
 #include "Figure.hpp"
-#include "Colors.hpp"
 
 namespace sanji {
 
 using namespace sanji_;
-using namespace sanji::colors;
 
 /* Type definitions */
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
+using Style    = std::unordered_map<std::string,int>;
 
 void init();
 
 sh_fig_ptr figure();
 sh_fig_ptr figure(const QString fig_name);
 
-void plot(const VectorXd& x, const MatrixXd& y, const int priority=0, const char line_style='-', const Color color=BLACK);
+void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority=0);
 
-void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority=0, const char line_style='-', const Color color=BLACK);
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority=0);
 
 void printAvailableFontFamilies();
 

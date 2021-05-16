@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
 
     // Plot the data
     sanji::figure("Simple data");
-    sanji::plot(x,y1,10,'-',RED);
-    sanji::plot(x,y2,2,'-',BLUE);
+    sanji::plot(x,y1,{{"line_style",'-'},{"color",RED}},10);
+    sanji::plot(x,y2,{{"line_style",'-'},{"color",BLUE}},2);
 
     // Execute the application
     app.exec();

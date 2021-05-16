@@ -6,8 +6,11 @@
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
 #include "VTicksArea.hpp"
+#include "Colors.hpp"
 
 namespace sanji_ {
+
+using namespace sanji::colors;
 
 /* Type definitions */
 template <typename T>
@@ -48,9 +51,14 @@ Figure::~Figure() {
         if (render_area) delete render_area;
 }
 
-void Figure::plot(const VectorXd& x, const MatrixXd& y, const int priority, const char line_style, const Color color) {
+void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority) {
     // Check the arguments
     if (x.rows() != y.rows()) throw new std::runtime_error("Figure::plot: x.rows() != y.rows()");
+
+    // Parse the style arguments
+    uint32_t color;
+    if (style.find("color") == style.end()) color = BLACK;
+    else                                    color = style.at("color");
 
     // Make sure that a render area is available
     checkRenderArea();
@@ -117,7 +125,7 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const int priority, cons
     *y_cpy              = y;
 
     // Store the data
-    line_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,QPen(QColor(std::get<0>(color),std::get<1>(color),std::get<2>(color))));
+    line_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,QPen(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
 
     // Sort the data
     struct {
@@ -128,11 +136,16 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const int priority, cons
     std::sort(line_data_[current_render_area_idx_].begin(),line_data_[current_render_area_idx_].end(),custom_less);
 }
 
-void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority, const char line_style, const Color color) {
+void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority) {
     // Check the arguments
     if (x.rows() != y.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != y.rows()");
     if (x.rows() != u.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != u.rows()");
     if (x.rows() != v.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != v.rows()");
+
+    // Parse the style arguments
+    uint32_t color;
+    if (style.find("color") == style.end()) color = BLACK;
+    else                                    color = style.at("color");
 
     // Make sure that a render area is available
     checkRenderArea();
@@ -200,7 +213,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     *v_cpy              = v;
 
     // Store the data
-    arrow_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,u_cpy,v_cpy,QBrush(QColor(std::get<0>(color),std::get<1>(color),std::get<2>(color))));
+    arrow_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,u_cpy,v_cpy,QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
 
     // Sort the data
     struct {
