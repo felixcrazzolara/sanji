@@ -23,6 +23,7 @@ PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*              
 
 void PlotArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing);
 
     // Create a lambda to convert x-y-coordinates to pixel coordinates
     const auto toQPoint = [xmin=limits_info_->xmin,
