@@ -37,6 +37,7 @@ void RenderArea::resizeEvent(QResizeEvent* event) {
     QFontMetrics fm(QFont("Monospace",10));
     const uint x_ticks_min_height = fm.boundingRect("0").height()+tick_height+1;
     const uint y_ticks_min_width  = fm.boundingRect(QString::fromStdString("-0."+std::string(buf)+"e-100")).width()+tick_width+1;
+    delete[] buf;
     const auto geom               = geometry();
     const uint lw                 = y_ticks_min_width;
     const uint lh                 = x_ticks_min_height;
