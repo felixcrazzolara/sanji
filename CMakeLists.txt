@@ -30,6 +30,7 @@ add_library(sanji SHARED
     include/HTicksArea.hpp
     src/VTicksArea.cpp
     include/VTicksArea.hpp
+    src/Colors.cpp
 )
 
 add_executable(SimpleLinePlot

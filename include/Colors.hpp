@@ -18,6 +18,8 @@ inline constexpr uint32_t GRAY   = 0x7f7f7f;
 inline constexpr uint32_t OLIVE  = 0xbcbd22;
 inline constexpr uint32_t CYAN   = 0x17becf;
 
+uint32_t hsv_to_rgb(const double h, const double s, const double v);
+
 };
 
 };

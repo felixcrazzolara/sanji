@@ -14,7 +14,7 @@ using namespace sanji_;
 /* Type definitions */
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
-using Style    = std::unordered_map<std::string,int>;
+using Style    = std::unordered_map<std::string,double>;
 
 void init();
 

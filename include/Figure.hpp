@@ -24,7 +24,7 @@ using vec_ptr    = shared_ptr<VectorXd>;
 using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
-using Style      = std::unordered_map<std::string,int>;
+using Style      = std::unordered_map<std::string,double>;
 
 struct LimitsInfo {
     double xmin;
