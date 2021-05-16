@@ -1,10 +1,11 @@
-#include "Figure.hpp"
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
 #include <limits>
-
-#include <iostream>
+#include "Figure.hpp"
+#include "PlotArea.hpp"
+#include "HTicksArea.hpp"
+#include "VTicksArea.hpp"
 
 namespace sanji_ {
 
@@ -85,25 +86,25 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const int priority, cons
         limits_info_[current_render_area_idx_].value_init = true;
     }
     if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin)
-        limits_info_[current_render_area_idx_].xmin = xmin;
+        limits_info_[current_render_area_idx_].xmin = xmin - 0.025*(xmax-xmin);
     if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax)
-        limits_info_[current_render_area_idx_].xmax = xmax;
+        limits_info_[current_render_area_idx_].xmax = xmax + 0.025*(xmax-xmin);
     if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin)
-        limits_info_[current_render_area_idx_].ymin = ymin;
+        limits_info_[current_render_area_idx_].ymin = ymin - 0.025*(ymax-ymin);
     if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax)
-        limits_info_[current_render_area_idx_].ymax = ymax;
+        limits_info_[current_render_area_idx_].ymax = ymax + 0.025*(ymax-ymin);
     if (limits_info_[current_render_area_idx_].xmin == limits_info_[current_render_area_idx_].xmax)
         if (limits_info_[current_render_area_idx_].xmin == 0) {
-            limits_info_[current_render_area_idx_].xmin = -1;
-            limits_info_[current_render_area_idx_].xmax =  1;
+            limits_info_[current_render_area_idx_].xmin = -1.0-1e-3;
+            limits_info_[current_render_area_idx_].xmax =  1.0+1e-3;
         } else {
             limits_info_[current_render_area_idx_].xmin = 0.9*limits_info_[current_render_area_idx_].xmin;
             limits_info_[current_render_area_idx_].xmax = 1.1*limits_info_[current_render_area_idx_].xmax;
         }
     if (limits_info_[current_render_area_idx_].ymin == limits_info_[current_render_area_idx_].ymax)
         if (limits_info_[current_render_area_idx_].ymin == 0) {
-            limits_info_[current_render_area_idx_].ymin = -1;
-            limits_info_[current_render_area_idx_].ymax =  1;
+            limits_info_[current_render_area_idx_].ymin = -1.0-1e-3;
+            limits_info_[current_render_area_idx_].ymax =  1.0+1e-3;
         } else {
             limits_info_[current_render_area_idx_].ymin = 0.9*limits_info_[current_render_area_idx_].ymin;
             limits_info_[current_render_area_idx_].ymax = 1.1*limits_info_[current_render_area_idx_].ymax;
@@ -162,34 +163,29 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
         limits_info_[current_render_area_idx_].value_init = true;
     }
     if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin)
-        limits_info_[current_render_area_idx_].xmin = xmin;
+        limits_info_[current_render_area_idx_].xmin = xmin - 0.025*(xmax-xmin);
     if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax)
-        limits_info_[current_render_area_idx_].xmax = xmax;
+        limits_info_[current_render_area_idx_].xmax = xmax + 0.025*(xmax-xmin);
     if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin)
-        limits_info_[current_render_area_idx_].ymin = ymin;
+        limits_info_[current_render_area_idx_].ymin = ymin - 0.025*(ymax-ymin);
     if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax)
-        limits_info_[current_render_area_idx_].ymax = ymax;
+        limits_info_[current_render_area_idx_].ymax = ymax + 0.025*(ymax-ymin);
     if (limits_info_[current_render_area_idx_].xmin == limits_info_[current_render_area_idx_].xmax)
         if (limits_info_[current_render_area_idx_].xmin == 0) {
-            limits_info_[current_render_area_idx_].xmin = -1;
-            limits_info_[current_render_area_idx_].xmax =  1;
+            limits_info_[current_render_area_idx_].xmin = -1.0-1e-3;
+            limits_info_[current_render_area_idx_].xmax =  1.0+1e-3;
         } else {
             limits_info_[current_render_area_idx_].xmin = 0.9*limits_info_[current_render_area_idx_].xmin;
             limits_info_[current_render_area_idx_].xmax = 1.1*limits_info_[current_render_area_idx_].xmax;
         }
     if (limits_info_[current_render_area_idx_].ymin == limits_info_[current_render_area_idx_].ymax)
         if (limits_info_[current_render_area_idx_].ymin == 0) {
-            limits_info_[current_render_area_idx_].ymin = -1;
-            limits_info_[current_render_area_idx_].ymax =  1;
+            limits_info_[current_render_area_idx_].ymin = -1.0-1e-3;
+            limits_info_[current_render_area_idx_].ymax =  1.0+1e-3;
         } else {
             limits_info_[current_render_area_idx_].ymin = 0.9*limits_info_[current_render_area_idx_].ymin;
             limits_info_[current_render_area_idx_].ymax = 1.1*limits_info_[current_render_area_idx_].ymax;
         }
-
-    std::cout << "xmin: " << limits_info_[current_render_area_idx_].xmin << std::endl;
-    std::cout << "xmax: " << limits_info_[current_render_area_idx_].xmax << std::endl;
-    std::cout << "ymin: " << limits_info_[current_render_area_idx_].ymin << std::endl;
-    std::cout << "ymax: " << limits_info_[current_render_area_idx_].ymax << std::endl;
 
     // Copy the data
     const vec_ptr x_cpy = std::make_shared<VectorXd>();
@@ -226,7 +222,7 @@ void Figure::checkRenderArea() {
         arrow_data_.resize(1);
         limits_info_.emplace_back(LimitsInfo{std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),
                                              std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),0,0,0,0,false,false,false,false,false});
-        render_areas_.push_back(new RenderArea(this,&line_data_[0],&arrow_data_[0],&limits_info_[0]));
+        render_areas_.push_back(new RenderArea(this,new PlotArea(&line_data_[0],&arrow_data_[0],&limits_info_[0]),new HTicksArea(&limits_info_[0]),new VTicksArea(&limits_info_[0])));
         const QRect& geom = geometry();
         render_areas_.back()->setGeometry(QRect(geom.width()*0.05,geom.height()*0.05,geom.width()*0.9,geom.height()*0.9));
         current_render_area_idx_ = 0;

@@ -19,11 +19,17 @@ find_package(Qt5 5.15.2 COMPONENTS Widgets REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 add_library(sanji SHARED
-    src/Figure.cpp
     src/Sanji.cpp
-    src/RenderArea.cpp
+    src/Figure.cpp
     include/Figure.hpp
+    src/RenderArea.cpp
     include/RenderArea.hpp
+    src/PlotArea.cpp
+    include/PlotArea.hpp
+    src/HTicksArea.cpp
+    include/HTicksArea.hpp
+    src/VTicksArea.cpp
+    include/VTicksArea.hpp
 )
 
 add_executable(SimpleLinePlot

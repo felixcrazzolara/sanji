@@ -1,5 +1,7 @@
-#include "Sanji.hpp"
+#include <QFontDatabase>
+#include <QDebug>
 #include <vector>
+#include "Sanji.hpp"
 
 namespace sanji_ {
 
@@ -53,6 +55,11 @@ void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const Vecto
 
     // Plot the data
     gbl_fig_holder[gbl_current_fig_index]->quiver(x,y,u,v,priority,line_style,color);
+}
+
+void printAvailableFontFamilies() {
+    const QFontDatabase fdb;
+    qInfo() << fdb.families();
 }
 
 };

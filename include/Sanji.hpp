@@ -24,4 +24,6 @@ void plot(const VectorXd& x, const MatrixXd& y, const int priority=0, const char
 
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const int priority=0, const char line_style='-', const Color color=BLACK);
 
+void printAvailableFontFamilies();
+
 };
