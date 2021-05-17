@@ -2,6 +2,11 @@
 
 #include <QWidget>
 #include <Eigen/Dense>
+#include <tuple>
+#include <vector>
+#include <memory>
+#include <unordered_set>
+#include <string>
 
 namespace sanji_ {
 
@@ -16,6 +21,7 @@ using vec_ptr    = shared_ptr<VectorXd>;
 using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
+using Style      = std::unordered_map<std::string,double>;
 
 // Forward declarations
 struct LimitsInfo;
@@ -27,9 +33,9 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data,
-                  const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data,
-                  const LimitsInfo*                                                 limits_info);
+explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
+                  const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
+                  const LimitsInfo*                                                limits_info);
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);
@@ -40,11 +46,11 @@ void paintEvent(QPaintEvent* event) override;
 
 private:
 
-QColor                                                            background_color_;
+QColor                                                           background_color_;
 
-const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data_;
-const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data_;
-const LimitsInfo*                                                 limits_info_;
+const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data_;
+const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data_;
+const LimitsInfo*                                                limits_info_;
 
 };
 

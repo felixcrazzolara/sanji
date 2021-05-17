@@ -20,6 +20,11 @@ inline constexpr uint32_t CYAN   = 0x17becf;
 
 uint32_t hsv_to_rgb(const double h, const double s, const double v);
 
+uint32_t to_turbo_rgb(double s);
+
+/* Named color maps */
+inline constexpr int TURBO = 1;
+
 };
 
 };

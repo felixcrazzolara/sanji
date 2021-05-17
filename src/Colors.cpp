@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <cmath>
 
+// Extern declarations
+extern float turbo_srgb_floats[256][3];
+
 namespace sanji {
 
 namespace colors {
@@ -74,6 +77,15 @@ uint32_t hsv_to_rgb(const double h, const double s, const double v) {
         break;
     }
     return (static_cast<uint32_t>(out.r*(0xffu<<16u))&0xff0000)+(static_cast<uint32_t>(out.g*(0xffu<<8u))&0xff00u)+(static_cast<uint32_t>(out.b*0xffu)&0xffu);
+}
+
+// s is assumed to be in the open interval [0,1)
+uint32_t to_turbo_rgb(double s) {
+    s         = std::min(1.0,std::max(0.0,s));
+    uint8_t i = std::min(255.0,std::floor(s*256.0));
+    return (static_cast<uint32_t>(std::floor(turbo_srgb_floats[i][0]*256.0))<<16)
+          +(static_cast<uint32_t>(std::floor(turbo_srgb_floats[i][1]*256.0))<<8)
+          +static_cast<uint32_t>(std::floor(turbo_srgb_floats[i][2]*256.0));
 }
 
 };

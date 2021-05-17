@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <limits>
+#include <cmath>
 #include "Figure.hpp"
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
@@ -149,13 +150,17 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     if (x.rows() != u.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != u.rows()");
     if (x.rows() != v.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != v.rows()");
 
-    // Parse the style arguments
-    uint32_t color;
-    if (style.find("color") == style.end()) color = BLACK;
-    else                                    color = style.at("color");
-
     // Make sure that a render area is available
     checkRenderArea();
+
+    // Check if a colormap shall be used
+    bool use_colormap = false;
+    double arrow_length;
+    if (style.find("use_colormap") != style.end()) {
+        if (style.find("arrow_length") == style.end()) throw new std::runtime_error("Must provided argument 'arrow_length' when using the option 'use_colormap' for 'quiver'.");
+        use_colormap = true;
+        arrow_length = style.at("arrow_length");
+    }
 
     // Determine the min/max values
     double xmin;
@@ -163,16 +168,26 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     double ymin;
     double ymax;
     for (uint i = 0; i < x.rows(); ++i) {
-        if (i == 0) {
-            xmin = x(i)+u(i);
-            xmax = x(i)+u(i);
-            ymin = y(i)+v(i);
-            ymax = y(i)+v(i);
+        double u_,v_;
+        if (use_colormap) {
+            const double phi = std::atan2(v(i),u(i));
+            u_               = std::cos(phi)*arrow_length;
+            v_               = std::sin(phi)*arrow_length;
         } else {
-            if (x(i)+u(i) < xmin) xmin = x(i)+u(i);
-            if (x(i)+u(i) > xmax) xmax = x(i)+u(i);
-            if (y(i)+v(i) < ymin) ymin = y(i)+v(i);
-            if (y(i)+v(i) > ymax) ymax = y(i)+v(i);
+            u_ = u(i);
+            v_ = v(i);
+        }
+
+        if (i == 0) {
+            xmin = x(i) + u_;
+            xmax = x(i) + u_;
+            ymin = y(i) + v_;
+            ymax = y(i) + v_;
+        } else {
+            if (x(i) + u_ < xmin) xmin = x(i) + u_;
+            if (x(i) + u_ > xmax) xmax = x(i) + u_;
+            if (y(i) + v_ < ymin) ymin = y(i) + v_;
+            if (y(i) + v_ > ymax) ymax = y(i) + v_;
         }
     }
     if (!limits_info_[current_render_area_idx_].value_init) {
@@ -220,11 +235,11 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     *v_cpy              = v;
 
     // Store the data
-    arrow_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,u_cpy,v_cpy,QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
+    arrow_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,u_cpy,v_cpy,style);
 
     // Sort the data
     struct {
-        bool operator()(const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>& a, const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>& b) const {
+        bool operator()(const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>& a, const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>& b) const {
             return std::get<0>(a) < std::get<0>(b);
         }
     } custom_less;

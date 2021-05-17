@@ -3,19 +3,22 @@
 #include <complex>
 #include "PlotArea.hpp"
 #include "Figure.hpp"
+#include "Colors.hpp"
 
 #include <iostream> // TODO: Remove this later
 
 namespace sanji_ {
 
+/* Namespaces */
+using namespace sanji::colors;
 using namespace std::complex_literals;
 
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data,
-                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data,
-                   const LimitsInfo*                                                 limits_info) :
+PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
+                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
+                   const LimitsInfo*                                                limits_info) :
     background_color_{255,255,255},
     line_data_(line_data),
     arrow_data_(arrow_data),
@@ -75,8 +78,10 @@ void PlotArea::paintEvent(QPaintEvent* event) {
                     painter.drawLine(toQPoint(x(i),y(i,j)),toQPoint(x(i+1),y(i+1,j)));
     }
 
-    // Plot the arrow data
+    /* Plot the arrow data */
     painter.setPen(Qt::NoPen);
+
+    // Define the unit arrow
     const double    tail_width  = 0.2;
     const double    tail_length = 0.7;
     vector<complex> base_tail_corners{           -0.5i*tail_width,
@@ -88,25 +93,61 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     vector<complex> base_head_corners{-0.5i*head_width,
                                       head_length,
                                       0.5i*head_width};
+
+    // Iterate through the data
     for (const auto& arrow_data : *arrow_data_) {
         // Extract the variables for convenience
-        const VectorXd& x = *std::get<1>(arrow_data);
-        const VectorXd& y = *std::get<2>(arrow_data);
-        const VectorXd& u = *std::get<3>(arrow_data);
-        const VectorXd& v = *std::get<4>(arrow_data);
+        const VectorXd& x     = *std::get<1>(arrow_data);
+        const VectorXd& y     = *std::get<2>(arrow_data);
+        const VectorXd& u     = *std::get<3>(arrow_data);
+        const VectorXd& v     = *std::get<4>(arrow_data);
+        const Style&    style =  std::get<5>(arrow_data);
 
-        // Configure the painter
-        painter.setBrush(std::get<5>(arrow_data));
+        /* Configure the brush */
+        bool use_colormap          = false;
+        bool heatmap_use_linscale  = true;
+        double min,max;
+        if (style.find("use_colormap") == style.end()) {
+            // Color
+            uint32_t color;
+            if (style.find("color") == style.end()) color = BLACK;
+            else                                    color = style.at("color");
+            painter.setBrush(QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
+        } else {
+            // Check the arguments
+            if (style.find("colormap") == style.end()) throw new std::runtime_error("Must provided argument 'colormap' when using the option 'use_colormap' for 'quiver'.");
+            if (style.find("min") == style.end())      throw new std::runtime_error("Must provided argument 'min' when using the option 'use_colormap' for 'quiver'.");
+            if (style.find("max") == style.end())      throw new std::runtime_error("Must provided argument 'max' when using the option 'use_colormap' for 'quiver'.");
+            if (style.at("colormap") != TURBO)           throw new std::runtime_error("Currently 'quiver' supports only the colormap 'TURBO'.");
+
+            // Parse the arguments and set the flag
+            if (style.find("use_logscale") != style.end()) heatmap_use_linscale = false;
+            min = style.at("min");
+            max = style.at("max");
+            use_colormap = true;
+        }
 
         // Draw the data
         for (uint i = 0; i < x.rows(); ++i) {
-            const double phi             = atan2(v(i),u(i));
-            const double arrow_length    = std::sqrt(v(i)*v(i)+u(i)*u(i));
+            // Define the arrow length
+            const double data_length     = std::sqrt(v(i)*v(i)+u(i)*u(i));
+            const double arrow_length    = use_colormap ? style.at("arrow_length") : data_length;
+
+            // Compute the coordinates of the scaled and rotated arrow
+            const double phi             = std::atan2(v(i),u(i));
             const complex rot            = std::cos(phi)+1.0i*std::sin(phi);
             vector<complex> tail_corners = base_tail_corners;
             for (auto& corner : tail_corners) corner *= rot*arrow_length;
             vector<complex> head_corners = base_head_corners;
             for (auto& corner : head_corners) corner *= rot*arrow_length;
+
+            // Possibly configure the brush
+            if (use_colormap) {
+                if (heatmap_use_linscale)
+                    painter.setBrush(QBrush(QColor(to_turbo_rgb((data_length-min)/(max-min)))));
+                else
+                    painter.setBrush(QBrush(QColor(to_turbo_rgb((std::log10(data_length)-std::log10(min))/(std::log10(max)-std::log10(min))))));
+            }
 
             const QPoint head_points[3] = {
                 toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[0]).real(),y(i)+(rot*tail_length*arrow_length+head_corners[0]).imag()),

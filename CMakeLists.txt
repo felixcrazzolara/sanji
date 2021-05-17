@@ -33,6 +33,7 @@ add_library(sanji SHARED
     src/Colors.cpp
     include/TicksArea.hpp
     src/TicksArea.cpp
+    src/Colormaps.cpp
 )
 
 add_executable(SimpleLinePlot
@@ -41,6 +42,10 @@ add_executable(SimpleLinePlot
 
 add_executable(Quiver
     examples/Quiver.cpp
+)
+
+add_executable(HeatQuiver
+    examples/HeatQuiver.cpp
 )
 
 target_include_directories(sanji
@@ -52,6 +57,10 @@ target_link_libraries(SimpleLinePlot
 )
 
 target_link_libraries(Quiver
+    PRIVATE sanji
+)
+
+target_link_libraries(HeatQuiver
     PRIVATE sanji
 )
 
