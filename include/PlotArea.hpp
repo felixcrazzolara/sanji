@@ -31,11 +31,16 @@ explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*               
                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data,
                   const LimitsInfo*                                                 limits_info);
 
+/* Setter */
+void setBackgroundColor(const uint32_t color);
+
 protected:
 
 void paintEvent(QPaintEvent* event) override;
 
 private:
+
+QColor                                                            background_color_;
 
 const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data_;
 const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data_;

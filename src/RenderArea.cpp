@@ -29,7 +29,7 @@ void RenderArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
 
     // Fetch the geometry of the this widget
-    const auto geom = geometry();
+    const QRect geom = geometry();
 
     // Fill the background
     painter.setPen(Qt::NoPen);
@@ -54,6 +54,18 @@ void RenderArea::resizeEvent(QResizeEvent* event) {
     plot_area_->setGeometry(lw,0,geom.width()-lw,geom.height()-lh);
     tick_area_y_->setGeometry(0,0,lw,geom.height()-lh);
     tick_area_x_->setGeometry(lw,geom.height()-lh,geom.width()-lw,lh);
+}
+
+void RenderArea::setPlotBackgroundColor(const uint32_t color) {
+    plot_area_->setBackgroundColor(color);
+}
+
+void RenderArea::setxTicksBackgroundColor(const uint32_t color) {
+    tick_area_x_->setBackgroundColor(color);
+}
+
+void RenderArea::setyTicksBackgroundColor(const uint32_t color) {
+    tick_area_y_->setBackgroundColor(color);
 }
 
 };

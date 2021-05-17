@@ -16,6 +16,7 @@ using complex = std::complex<double>;
 PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                   line_data,
                    const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,QBrush>>* arrow_data,
                    const LimitsInfo*                                                 limits_info) :
+    background_color_{255,255,255},
     line_data_(line_data),
     arrow_data_(arrow_data),
     limits_info_(limits_info)
@@ -27,6 +28,11 @@ void PlotArea::paintEvent(QPaintEvent* event) {
 
     // Fetch the geometry of the this widget
     const QRect geom = geometry();
+
+    // Fill the background
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(background_color_);
+    painter.drawRect(0,0,geom.width(),geom.height());
 
     // Create a lambda to convert x-y-coordinates to pixel coordinates
     double xmin;
@@ -118,6 +124,10 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             painter.drawConvexPolygon(tail_points,4);
         }
     }
+}
+
+void PlotArea::setBackgroundColor(const uint32_t color) {
+    background_color_ = QColor(0xffu&(color>>16),0xffu&(color>>8),0xffu&color);
 }
 
 };

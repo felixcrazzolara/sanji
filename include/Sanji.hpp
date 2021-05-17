@@ -36,4 +36,8 @@ void setymax(const double ymax);
 void setxlimits(const double xmin, const double xmax);
 void setylimits(const double ymin, const double ymax);
 
+void setPlotBackgroundColor(const uint32_t color);
+void setxTicksBackgroundColor(const uint32_t color);
+void setyTicksBackgroundColor(const uint32_t color);
+
 };

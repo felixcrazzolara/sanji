@@ -287,4 +287,19 @@ void Figure::setymax(const double ymax) {
     }
 }
 
+void Figure::setPlotBackgroundColor(const uint32_t color) {
+    if (current_render_area_idx_ != -1)
+        render_areas_[current_render_area_idx_]->setPlotBackgroundColor(color);
+}
+
+void Figure::setxTicksBackgroundColor(const uint32_t color) {
+    if (current_render_area_idx_ != -1)
+        render_areas_[current_render_area_idx_]->setxTicksBackgroundColor(color);
+}
+
+void Figure::setyTicksBackgroundColor(const uint32_t color) {
+    if (current_render_area_idx_ != -1)
+        render_areas_[current_render_area_idx_]->setyTicksBackgroundColor(color);
+}
+
 };

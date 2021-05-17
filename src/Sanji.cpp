@@ -103,4 +103,19 @@ void setylimits(const double ymin, const double ymax) {
     }
 }
 
+void setPlotBackgroundColor(const uint32_t color) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setPlotBackgroundColor(color);
+}
+
+void setxTicksBackgroundColor(const uint32_t color) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setxTicksBackgroundColor(color);
+}
+
+void setyTicksBackgroundColor(const uint32_t color) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setyTicksBackgroundColor(color);
+}
+
 };

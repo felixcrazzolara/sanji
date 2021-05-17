@@ -23,6 +23,11 @@ explicit RenderArea(QWidget*    parent,
                     VTicksArea* ticks_area_y);
 ~RenderArea();                    
 
+/* Setter */
+void setPlotBackgroundColor(const uint32_t color);
+void setxTicksBackgroundColor(const uint32_t color);
+void setyTicksBackgroundColor(const uint32_t color);
+
 protected:
 
 void paintEvent(QPaintEvent* event) override;

@@ -71,6 +71,9 @@ void setxmin(const double xmin);
 void setxmax(const double xmax);
 void setymin(const double ymin);
 void setymax(const double ymax);
+void setPlotBackgroundColor(const uint32_t color);
+void setxTicksBackgroundColor(const uint32_t color);
+void setyTicksBackgroundColor(const uint32_t color);
 
 protected:
 

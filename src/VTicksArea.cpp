@@ -7,14 +7,19 @@
 namespace sanji_ {
 
 VTicksArea::VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area) :
-    limits_info_(limits_info),
-    plot_area_(plot_area)
+    TicksArea(limits_info,plot_area)
 {}
 
 void VTicksArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
 
+    // Fetch the geometry of the this widget
     const QRect geom = geometry();
+
+    // Fill the background
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(background_color_);
+    painter.drawRect(0,0,geom.width(),geom.height());
 
     const uint tick_width = 11;
 
