@@ -1,4 +1,5 @@
 #include <QFontMetrics>
+#include <QPainter>
 #include "RenderArea.hpp"
 
 namespace sanji_ {
@@ -25,6 +26,15 @@ RenderArea::~RenderArea() {
 }
 
 void RenderArea::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);
+
+    // Fetch the geometry of the this widget
+    const auto geom = geometry();
+
+    // Fill the background
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(255,255,255)));
+    painter.drawRect(0,0,geom.width(),geom.height());
 }
 
 void RenderArea::resizeEvent(QResizeEvent* event) {

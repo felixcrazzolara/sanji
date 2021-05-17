@@ -25,11 +25,14 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing);
 
+    // Fetch the geometry of the this widget
+    const QRect geom = geometry();
+
     // Create a lambda to convert x-y-coordinates to pixel coordinates
     const auto toQPoint = [xmin=limits_info_->xmin,
                            ymax=limits_info_->ymax,
-                           x_to_px=geometry().width()/(limits_info_->xmax-limits_info_->xmin),
-                           y_to_px=geometry().height()/(limits_info_->ymax-limits_info_->ymin)](const double x, const double y)->QPoint {
+                           x_to_px=geom.width()/(limits_info_->xmax-limits_info_->xmin),
+                           y_to_px=geom.height()/(limits_info_->ymax-limits_info_->ymin)](const double x, const double y)->QPoint {
         return QPoint((x-xmin)*x_to_px,(ymax-y)*y_to_px);
     };
 

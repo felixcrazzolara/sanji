@@ -234,7 +234,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
 void Figure::resizeEvent(QResizeEvent* event) {
     if (current_render_area_idx_ >= 0) {
         const QRect& geom = geometry();
-        render_areas_.back()->setGeometry(QRect(geom.width()*0.05,geom.height()*0.05,geom.width()*0.9,geom.height()*0.9));
+        render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
     }
 }
 
@@ -246,7 +246,7 @@ void Figure::checkRenderArea() {
                                              std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),0,0,0,0,false,false,false,false,false});
         render_areas_.push_back(new RenderArea(this,new PlotArea(&line_data_[0],&arrow_data_[0],&limits_info_[0]),new HTicksArea(&limits_info_[0]),new VTicksArea(&limits_info_[0])));
         const QRect& geom = geometry();
-        render_areas_.back()->setGeometry(QRect(geom.width()*0.05,geom.height()*0.05,geom.width()*0.9,geom.height()*0.9));
+        render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
         current_render_area_idx_ = 0;
     }
 }
