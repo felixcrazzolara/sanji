@@ -259,4 +259,32 @@ void Figure::setAxesRatio(const std::string& axes_ratio) {
             limits_info_[current_render_area_idx_].axes_ratio = LimitsInfo::AXES_RATIO::EQUAL;
 }
 
+void Figure::setxmin(const double xmin) {
+    if (current_render_area_idx_ != -1) {
+        limits_info_[current_render_area_idx_].xmin     = xmin;
+        limits_info_[current_render_area_idx_].xmin_set = true;
+    }
+}
+
+void Figure::setxmax(const double xmax) {
+    if (current_render_area_idx_ != -1) {
+        limits_info_[current_render_area_idx_].xmax     = xmax;
+        limits_info_[current_render_area_idx_].xmax_set = true;
+    }
+}
+
+void Figure::setymin(const double ymin) {
+    if (current_render_area_idx_ != -1) {
+        limits_info_[current_render_area_idx_].ymin     = ymin;
+        limits_info_[current_render_area_idx_].ymin_set = true;
+    }
+}
+
+void Figure::setymax(const double ymax) {
+    if (current_render_area_idx_ != -1) {
+        limits_info_[current_render_area_idx_].ymax     = ymax;
+        limits_info_[current_render_area_idx_].ymax_set = true;
+    }
+}
+
 };

@@ -29,4 +29,11 @@ void printAvailableFontFamilies();
 
 void setAxesRatio(const std::string& axes_ratio);
 
+void setxmin(const double xmin);
+void setxmax(const double xmax);
+void setymin(const double ymin);
+void setymax(const double ymax);
+void setxlimits(const double xmin, const double xmax);
+void setylimits(const double ymin, const double ymax);
+
 };

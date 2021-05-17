@@ -69,4 +69,38 @@ void setAxesRatio(const std::string& axes_ratio) {
         gbl_fig_holder[gbl_current_fig_index]->setAxesRatio(axes_ratio);
 }
 
+void setxmin(const double xmin) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setxmin(xmin);
+}
+
+void setxmax(const double xmax) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setxmax(xmax);
+}
+
+void setymin(const double ymin) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setymin(ymin);
+}
+
+void setymax(const double ymax) {
+    if (gbl_current_fig_index != -1)
+        gbl_fig_holder[gbl_current_fig_index]->setymax(ymax);
+}
+
+void setxlimits(const double xmin, const double xmax) {
+    if (gbl_current_fig_index != -1) {
+        gbl_fig_holder[gbl_current_fig_index]->setxmin(xmin);
+        gbl_fig_holder[gbl_current_fig_index]->setxmax(xmax);
+    }
+}
+
+void setylimits(const double ymin, const double ymax) {
+    if (gbl_current_fig_index != -1) {
+        gbl_fig_holder[gbl_current_fig_index]->setymin(ymin);
+        gbl_fig_holder[gbl_current_fig_index]->setymax(ymax);
+    }
+}
+
 };

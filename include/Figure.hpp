@@ -61,10 +61,16 @@ public:
 Figure(const QString& fig_name="");
 virtual ~Figure();
 
-/* Miscellaneous */
+/* Plotting */
 void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority);
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);
+
+/* Setter */
 void setAxesRatio(const std::string& axes_ratio);
+void setxmin(const double xmin);
+void setxmax(const double xmax);
+void setymin(const double ymin);
+void setymax(const double ymax);
 
 protected:
 
