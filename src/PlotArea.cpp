@@ -29,10 +29,25 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     const QRect geom = geometry();
 
     // Create a lambda to convert x-y-coordinates to pixel coordinates
-    const auto toQPoint = [xmin=limits_info_->xmin,
-                           ymax=limits_info_->ymax,
-                           x_to_px=geom.width()/(limits_info_->xmax-limits_info_->xmin),
-                           y_to_px=geom.height()/(limits_info_->ymax-limits_info_->ymin)](const double x, const double y)->QPoint {
+    double xmin;
+    double ymax;
+    double x_to_px = geom.width()/(limits_info_->xmax-limits_info_->xmin);
+    double y_to_px = geom.height()/(limits_info_->ymax-limits_info_->ymin);
+    if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
+        if (x_to_px >= y_to_px) {
+            x_to_px = y_to_px;
+            ymax    = limits_info_->ymax;
+            xmin    = limits_info_->xmin-std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
+        } else {
+            y_to_px = x_to_px;
+            xmin    = limits_info_->xmin;
+            ymax    = limits_info_->ymax+std::max(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin),0.0)/2.0;
+        }
+    } else {
+        xmin    = limits_info_->xmin;
+        ymax    = limits_info_->ymax;
+    }
+    const auto toQPoint = [xmin,ymax,x_to_px,y_to_px](const double x, const double y)->QPoint {
         return QPoint((x-xmin)*x_to_px,(ymax-y)*y_to_px);
     };
 

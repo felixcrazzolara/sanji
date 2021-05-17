@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <vector>
+#include "PlotArea.hpp"
 
 namespace sanji_ {
 
@@ -20,7 +21,7 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit HTicksArea(const LimitsInfo* limits_info);
+explicit HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area);
 
 protected:
 
@@ -30,6 +31,7 @@ private:
 
 const LimitsInfo* limits_info_;
 vector<QLabel*>   tick_labels_;
+const PlotArea*   plot_area_;
 
 };
 

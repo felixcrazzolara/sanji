@@ -7,8 +7,9 @@
 
 namespace sanji_ {
 
-HTicksArea::HTicksArea(const LimitsInfo* limits_info) :
-    limits_info_(limits_info)
+HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area) :
+    limits_info_(limits_info),
+    plot_area_(plot_area)
 {}
 
 void HTicksArea::paintEvent(QPaintEvent* event) {
@@ -20,10 +21,23 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
 
     const uint num_digits = 5;
 
-
     // Draw a thin horizontal line first
     painter.setPen(QPen(QColor(171,171,171)));
     painter.drawLine(0,(tick_height-1)/2,geom.width(),(tick_height-1)/2);
+
+    // Determine the axis limits
+    const QRect plot_geom = plot_area_->geometry();
+    double x_to_px        = plot_geom.width()/(limits_info_->xmax-limits_info_->xmin);
+    double y_to_px        = plot_geom.height()/(limits_info_->ymax-limits_info_->ymin);
+    double xmin_          = limits_info_->xmin;
+    double xmax_          = limits_info_->xmax;
+    if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
+        if (x_to_px >= y_to_px) {
+            x_to_px = y_to_px;
+            xmin_   = limits_info_->xmin-std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
+            xmax_   = limits_info_->xmax+std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
+        }
+    }
 
     // Determine the tick locations
     QFontMetrics fm(QFont("Monospace",10));
@@ -35,8 +49,8 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     const uint min_pixel_per_tick = fm.boundingRect(QString::fromStdString("-0."+std::string(buf)+"e-100")).width();
     delete[] buf;
     while (num_pixel_per_tick > min_pixel_per_tick) {
-        const int xmin     = std::ceil(mult*limits_info_->xmin);
-        const int xmax     = std::floor(mult*limits_info_->xmax);
+        const int xmin     = std::ceil(mult*xmin_);
+        const int xmax     = std::floor(mult*xmax_);
         num_pixel_per_tick = geom.width()/(xmax-xmin+1);
         mult              *= 10;
     }
@@ -46,12 +60,11 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
 
     // Plot the ticks
     painter.setPen(QPen(QColor(0,0,0)));
-    char* chr_buffer    = new char[20];
-    const double xmin   = std::ceil(mult*limits_info_->xmin)/mult;
-    const double xmax   = std::floor(mult*limits_info_->xmax)/mult;
-    const auto toXCoord = [xmin=limits_info_->xmin,
-                           x_to_px=geom.width()/(limits_info_->xmax-limits_info_->xmin)](const double x)->int {
-        return (x-xmin)*x_to_px;
+    char* chr_buffer      = new char[20];
+    const double xmin     = std::ceil(mult*xmin_)/mult;
+    const double xmax     = std::floor(mult*xmax_)/mult;
+    const auto   toXCoord = [xmin_,x_to_px](const double x)->int {
+        return (x-xmin_)*x_to_px;
     };
     double x            = xmin;
     int label_count     = 0;

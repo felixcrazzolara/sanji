@@ -27,22 +27,28 @@ using tuple      = std::tuple<Types...>;
 using Style      = std::unordered_map<std::string,double>;
 
 struct LimitsInfo {
-    double xmin;
-    double xmax;
-    double ymin;
-    double ymax;
 
-    double xmin_value;
-    double xmax_value;
-    double ymin_value;
-    double ymax_value;
-    
-    bool   value_init;
-    
-    bool   xmin_set;
-    bool   xmax_set;
-    bool   ymin_set;
-    bool   ymax_set;
+enum class AXES_RATIO {NONE,EQUAL};
+
+double     xmin;
+double     xmax;
+double     ymin;
+double     ymax;
+
+double     xmin_value;
+double     xmax_value;
+double     ymin_value;
+double     ymax_value;
+
+bool       value_init;
+
+bool       xmin_set;
+bool       xmax_set;
+bool       ymin_set;
+bool       ymax_set;
+
+AXES_RATIO axes_ratio;
+
 };
 
 class Figure : public QWidget {
@@ -58,7 +64,7 @@ virtual ~Figure();
 /* Miscellaneous */
 void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority);
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);
-void setAxisRatio(const std::string& axis_ratio);
+void setAxesRatio(const std::string& axes_ratio);
 
 protected:
 

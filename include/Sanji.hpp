@@ -27,6 +27,6 @@ void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const Vecto
 
 void printAvailableFontFamilies();
 
-void setAxisRatio(const std::string& axis_ratio);
+void setAxesRatio(const std::string& axes_ratio);
 
 };

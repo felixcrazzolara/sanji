@@ -243,24 +243,20 @@ void Figure::checkRenderArea() {
         line_data_.resize(1);
         arrow_data_.resize(1);
         limits_info_.emplace_back(LimitsInfo{std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),
-                                             std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),0,0,0,0,false,false,false,false,false});
-        render_areas_.push_back(new RenderArea(this,new PlotArea(&line_data_[0],&arrow_data_[0],&limits_info_[0]),new HTicksArea(&limits_info_[0]),new VTicksArea(&limits_info_[0])));
+                                             std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),
+                                             0,0,0,0,false,false,false,false,false,LimitsInfo::AXES_RATIO::NONE});
+        PlotArea* plot_area = new PlotArea(&line_data_[0], &arrow_data_[0], &limits_info_[0]);
+        render_areas_.push_back(new RenderArea(this, plot_area, new HTicksArea(&limits_info_[0],plot_area), new VTicksArea(&limits_info_[0],plot_area)));
         const QRect& geom = geometry();
         render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
         current_render_area_idx_ = 0;
     }
 }
 
-void Figure::setAxisRatio(const std::string& axis_ratio) {
-    if (axis_ratio == "equal")
-        if (current_render_area_idx_ != -1) {
-            const double min = std::min(limits_info_[current_render_area_idx_].xmin,limits_info_[current_render_area_idx_].ymin);
-            const double max = std::max(limits_info_[current_render_area_idx_].xmax,limits_info_[current_render_area_idx_].ymax);
-            limits_info_[current_render_area_idx_].xmin = min;
-            limits_info_[current_render_area_idx_].ymin = min;
-            limits_info_[current_render_area_idx_].xmax = max;
-            limits_info_[current_render_area_idx_].ymax = max;
-        }
+void Figure::setAxesRatio(const std::string& axes_ratio) {
+    if (current_render_area_idx_ != -1)
+        if (axes_ratio == "equal")
+            limits_info_[current_render_area_idx_].axes_ratio = LimitsInfo::AXES_RATIO::EQUAL;
 }
 
 };

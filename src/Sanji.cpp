@@ -64,9 +64,9 @@ void printAvailableFontFamilies() {
     qInfo() << fdb.families();
 }
 
-void setAxisRatio(const std::string& axis_ratio) {
+void setAxesRatio(const std::string& axes_ratio) {
     if (gbl_current_fig_index != -1)
-        gbl_fig_holder[gbl_current_fig_index]->setAxisRatio(axis_ratio);
+        gbl_fig_holder[gbl_current_fig_index]->setAxesRatio(axes_ratio);
 }
 
 };
