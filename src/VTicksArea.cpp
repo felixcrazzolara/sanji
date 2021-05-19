@@ -42,12 +42,13 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     }
 
     // Determine the tick locations
-    uint num_pixel_per_tick = 100;
-    uint mult               = 1;
-    while (num_pixel_per_tick > 75u) {
-        const int ymin     = std::ceil(mult*ymin_);
-        const int ymax     = std::floor(mult*ymax_);
-        num_pixel_per_tick = geom.height()/(ymax-ymin+1);
+    uint     num_pixel_per_tick = 1000;
+    uint64_t mult               = 1;
+    while (num_pixel_per_tick > 100u) {
+        if (mult == 0) abort();
+        const int64_t ymin     = std::ceil(mult*ymin_);
+        const int64_t ymax     = std::floor(mult*ymax_);
+        if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
         mult              *= 10;
     }
     mult /= 10;

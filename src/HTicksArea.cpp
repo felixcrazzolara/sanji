@@ -56,7 +56,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     while (num_pixel_per_tick > min_pixel_per_tick) {
         const int xmin     = std::ceil(mult*xmin_);
         const int xmax     = std::floor(mult*xmax_);
-        num_pixel_per_tick = geom.width()/(xmax-xmin+1);
+        if (xmax-xmin+1 != 0) num_pixel_per_tick = geom.width()/(xmax-xmin+1);
         mult              *= 10;
     }
     mult /= 10;

@@ -21,7 +21,7 @@ void init();
 sh_fig_ptr figure();
 sh_fig_ptr figure(const QString fig_name);
 
-void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority=0);
+void plot(const VectorXd& x, const MatrixXd& y, const Style& style={}, const int priority=0);
 
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority=0);
 
