@@ -3,6 +3,7 @@
 #include "VTicksArea.hpp"
 #include "Figure.hpp"
 #include <stdio.h>
+#include <quadmath.h>
 
 namespace sanji_ {
 
@@ -29,25 +30,25 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
-    double x_to_px        = plot_geom.width()/(limits_info_->xmax-limits_info_->xmin);
-    double y_to_px        = plot_geom.height()/(limits_info_->ymax-limits_info_->ymin);
-    double ymin_          = limits_info_->ymin;
-    double ymax_          = limits_info_->ymax;
+    __float128 x_to_px    = plot_geom.width()/(limits_info_->xmax-limits_info_->xmin);
+    __float128 y_to_px    = plot_geom.height()/(limits_info_->ymax-limits_info_->ymin);
+    __float128 ymin_      = limits_info_->ymin;
+    __float128 ymax_      = limits_info_->ymax;
     if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
         if (x_to_px < y_to_px) {
             y_to_px = x_to_px;
-            ymin_   = limits_info_->ymin-std::max(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin),0.0)/2.0;
-            ymax_   = limits_info_->ymax+std::max(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin),0.0)/2.0;
+            ymin_   = limits_info_->ymin-std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin)),0.0)/2.0;
+            ymax_   = limits_info_->ymax+std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin)),0.0)/2.0;
         }
     }
 
     // Determine the tick locations
-    uint     num_pixel_per_tick = 1000;
-    uint64_t mult               = 1;
+    uint       num_pixel_per_tick = 1000;
+    __float128 mult               = 1;
     while (num_pixel_per_tick > 100u) {
         if (mult == 0) abort();
-        const int64_t ymin     = std::ceil(mult*ymin_);
-        const int64_t ymax     = std::floor(mult*ymax_);
+        const __int128 ymin = ceilq(mult*ymin_);
+        const __int128 ymax = floorq(mult*ymax_);
         if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
         mult              *= 10;
     }
@@ -59,24 +60,24 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     QFontMetrics fm(QFont("Monospace",10));
     painter.setPen(QPen(QColor(0,0,0)));
     char* chr_buffer      = new char[20];
-    const double ymin     = std::ceil(mult*ymin_)/mult;
-    const double ymax     = std::floor(mult*ymax_)/mult;
-    const auto   toYCoord = [ymax_,y_to_px](const double y)->int {
+    const __float128 ymin = ceilq(mult*ymin_)/mult;
+    const __float128 ymax = floorq(mult*ymax_)/mult;
+    const auto   toYCoord = [ymax_,y_to_px](const __float128 y)->int {
         return (ymax_-y)*y_to_px;
     };
-    double y            = ymin;
-    int label_count     = 0;
+    __float128 y    = ymin;
+    int label_count = 0;
     do {
         if (y == 0.0) {
             sprintf(chr_buffer,"0\n");
         } else {
-            const double exp = std::log10(std::abs(y));
+            const __float128 exp = log10q(fabsq(y));
             if (exp < num_digits && exp >= 0.0) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(std::floor(exp))-1)+"f\n").c_str(),y);
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(floorq(exp))-1)+"f\n").c_str(),static_cast<double>(y));
             } else if (exp < 0.0 && exp >= num_digits-1) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"f\n").c_str(),y);
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"f\n").c_str(),static_cast<double>(y));
             } else {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"e\n").c_str(),y);
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"e\n").c_str(),static_cast<double>(y));
             }
         }
         const int   ycoord       = toYCoord(y);

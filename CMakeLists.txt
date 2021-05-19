@@ -18,6 +18,8 @@ find_package(Qt5 5.15.2 COMPONENTS Widgets REQUIRED)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+find_library(quadmath_path quadmath "/usr/lib/gcc/x86_64-linux-gnu/9/")
+
 add_library(sanji SHARED
     src/Sanji.cpp
     src/Figure.cpp
@@ -64,7 +66,12 @@ target_link_libraries(HeatQuiver
     PRIVATE sanji
 )
 
+target_link_directories(sanji
+    PRIVATE ${quadmath_path}
+)
+
 target_link_libraries(sanji
-    PUBLIC Eigen3::Eigen
-    PUBLIC Qt5::Widgets
+    PUBLIC  Eigen3::Eigen
+    PUBLIC  Qt5::Widgets
+    PRIVATE quadmath
 )
