@@ -4,6 +4,8 @@
 #include <QApplication>
 #include <Eigen/Dense>
 #include <string>
+#include <vector>
+#include <string>
 #include <unordered_map>
 #include "Figure.hpp"
 
@@ -23,7 +25,9 @@ sh_fig_ptr figure(const QString fig_name);
 
 void plot(const VectorXd& x, const MatrixXd& y, const Style& style={}, const int priority=0);
 
-void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority=0);
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style);
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, std::vector<std::string> flags);
 
 void printAvailableFontFamilies();
 

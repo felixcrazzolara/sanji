@@ -45,9 +45,10 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     }
 
     // Determine the tick locations
+    const double mult_mult        = 2.0;
     QFontMetrics fm(QFont("Monospace",10));
     uint num_pixel_per_tick       = 1000;
-    uint mult                     = 1;
+    double mult                   = 1.0;
     char* buf                     = new char[num_digits];
     for (uint i = 0; i < num_digits-1; ++i) buf[i] = '0';
     buf[num_digits-1]             = '\0';
@@ -57,11 +58,15 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         const int xmin     = std::ceil(mult*xmin_);
         const int xmax     = std::floor(mult*xmax_);
         if (xmax-xmin+1 != 0) num_pixel_per_tick = geom.width()/(xmax-xmin+1);
-        mult              *= 10;
+        mult              *= mult_mult;
     }
-    mult /= 10;
-    if (num_pixel_per_tick < min_pixel_per_tick)
-        mult = std::max(1u,mult/10);
+    mult /= mult_mult;
+    while (num_pixel_per_tick < min_pixel_per_tick) {
+        mult              /= mult_mult;
+        const int xmin     = std::ceil(mult*xmin_);
+        const int xmax     = std::floor(mult*xmax_);
+        num_pixel_per_tick = geom.width()/(xmax-xmin+1);
+    }
 
     // Plot the ticks
     painter.setPen(QPen(QColor(0,0,0)));

@@ -59,6 +59,16 @@ void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const Vecto
     gbl_fig_holder[gbl_current_fig_index]->quiver(x,y,u,v,style,priority);
 }
 
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style) {
+    quiver(x,y,u,v,style,0);
+}
+
+void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, std::vector<std::string> flags) {
+    Style style_ = style;
+    for (const auto& s : flags) style_[s] = 1.0;
+    quiver(x,y,u,v,style_,{});
+}
+
 void printAvailableFontFamilies() {
     const QFontDatabase fdb;
     qInfo() << fdb.families();

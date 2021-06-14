@@ -82,15 +82,15 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     painter.setPen(Qt::NoPen);
 
     // Define the unit arrow
-    const double    tail_width  = 0.2;
-    const double    tail_length = 0.7;
-    vector<complex> base_tail_corners{           -0.5i*tail_width,
+    const double          tail_width  = 0.2;
+    const double          tail_length = 0.7;
+    const vector<complex> base_tail_corners{           -0.5i*tail_width,
                                       tail_length-0.5i*tail_width,
                                       tail_length+0.5i*tail_width,
                                                   0.5i*tail_width};
-    const double    head_width  = 0.4;
-    const double    head_length = 0.3;
-    vector<complex> base_head_corners{-0.5i*head_width,
+    const double          head_width  = 0.4;
+    const double          head_length = 0.3;
+    const vector<complex> base_head_corners{-0.5i*head_width,
                                       head_length,
                                       0.5i*head_width};
 
@@ -118,7 +118,7 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             if (style.find("colormap") == style.end()) throw new std::runtime_error("Must provided argument 'colormap' when using the option 'use_colormap' for 'quiver'.");
             if (style.find("min") == style.end())      throw new std::runtime_error("Must provided argument 'min' when using the option 'use_colormap' for 'quiver'.");
             if (style.find("max") == style.end())      throw new std::runtime_error("Must provided argument 'max' when using the option 'use_colormap' for 'quiver'.");
-            if (style.at("colormap") != TURBO)           throw new std::runtime_error("Currently 'quiver' supports only the colormap 'TURBO'.");
+            if (style.at("colormap") != TURBO)         throw new std::runtime_error("Currently 'quiver' supports only the colormap 'TURBO'.");
 
             // Parse the arguments and set the flag
             if (style.find("use_logscale") != style.end()) heatmap_use_linscale = false;
@@ -137,8 +137,12 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             const double phi             = std::atan2(v(i),u(i));
             const complex rot            = std::cos(phi)+1.0i*std::sin(phi);
             vector<complex> tail_corners = base_tail_corners;
-            for (auto& corner : tail_corners) corner *= rot*arrow_length;
             vector<complex> head_corners = base_head_corners;
+            if (style.find("center_arrows") != style.end()) {
+                for (complex& c : tail_corners) c -= 0.5;
+                for (complex& c : head_corners) c -= 0.5;
+            }
+            for (auto& corner : tail_corners) corner *= rot*arrow_length;
             for (auto& corner : head_corners) corner *= rot*arrow_length;
 
             // Possibly configure the brush
