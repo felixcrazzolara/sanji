@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-#set(CMAKE_CXX_FLAGS "-O3")
+#set(CMAKE_CXX_FLAGS "-O2")
 
 set(Qt5Core_DIR "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5Core")
 set(Qt5_DIR     "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5")
@@ -17,8 +17,6 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 5.15.2 COMPONENTS Widgets REQUIRED)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-
-find_library(quadmath_path quadmath "/usr/lib/gcc/x86_64-linux-gnu/9/")
 
 add_library(sanji SHARED
     src/Sanji.cpp
@@ -36,6 +34,8 @@ add_library(sanji SHARED
     include/TicksArea.hpp
     src/TicksArea.cpp
     src/Colormaps.cpp
+    include/PlotUI.hpp
+    src/PlotUI.cpp
 )
 
 add_executable(SimpleLinePlot

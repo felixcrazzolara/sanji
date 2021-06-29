@@ -30,34 +30,48 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
-    __float128 x_to_px    = plot_geom.width()/(limits_info_->xmax-limits_info_->xmin);
-    __float128 y_to_px    = plot_geom.height()/(limits_info_->ymax-limits_info_->ymin);
-    __float128 ymin_      = limits_info_->ymin;
-    __float128 ymax_      = limits_info_->ymax;
+    double x_to_px        = plot_geom.width()/(limits_info_->xmax()-limits_info_->xmin());
+    double y_to_px        = plot_geom.height()/(limits_info_->ymax()-limits_info_->ymin());
+    double ymin_          = limits_info_->ymin();
+    double ymax_          = limits_info_->ymax();
     if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
         if (x_to_px < y_to_px) {
             y_to_px = x_to_px;
-            ymin_   = limits_info_->ymin-std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin)),0.0)/2.0;
-            ymax_   = limits_info_->ymax+std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin)),0.0)/2.0;
+            ymin_   = limits_info_->ymin()-std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin())),0.0)/2.0;
+            ymax_   = limits_info_->ymax()+std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin())),0.0)/2.0;
         }
     }
 
-    // Determine the tick locations
-    uint       num_pixel_per_tick = 1000;
-    __float128 mult               = 1;
-    while (num_pixel_per_tick > 100u) {
-        if (mult == 0) abort();
-        const __int128 ymin = ceilq(mult*ymin_);
-        const __int128 ymax = floorq(mult*ymax_);
+    /* Determine the tick locations */
+    // Determine the minimum number of pixels per tick
+    QFontMetrics fm(QFont("Monospace",10));
+    const uint min_pixel_per_tick = fm.boundingRect(QString("0")).height();
+
+    // Minimize 'num_pixel_per_tick' while making sure that 'num_pixel_per_tick' >= 'min_pixel_per_tick'
+    int num_pixel_per_tick        = -1;
+    const double mult_mult        = 2.0;
+    double mult                   = 1.0;
+    do {
+        const int ymin     = std::ceil(mult*ymin_);
+        const int ymax     = std::floor(mult*ymax_);
         if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
-        mult              *= 10;
+        mult              *= mult_mult;
+    } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
+
+    //--> At this point it holds that 'num_pixel_per_tick' < 'min_pixel_per_tick'
+
+    while (num_pixel_per_tick < min_pixel_per_tick) {
+        mult              /= mult_mult;
+        const int ymin     = std::ceil(mult*ymin_);
+        const int ymax     = std::floor(mult*ymax_);
+        num_pixel_per_tick = geom.height()/(ymax-ymin+1);
     }
-    mult /= 10;
+
+    //--> At this point it holds that 'num_pixel_per_tick' >= 'min_pixel_per_tick'
 
     const uint num_digits = 5;
 
     // Plot the ticks
-    QFontMetrics fm(QFont("Monospace",10));
     painter.setPen(QPen(QColor(0,0,0)));
     char* chr_buffer      = new char[20];
     const __float128 ymin = ceilq(mult*ymin_)/mult;

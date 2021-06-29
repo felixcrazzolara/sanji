@@ -10,6 +10,7 @@
 #include <Eigen/Dense>
 #include "RenderArea.hpp"
 #include "Colors.hpp"
+#include "LimitsInfo.hpp"
 
 namespace sanji_ {
 
@@ -25,31 +26,6 @@ using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
 using Style      = std::unordered_map<std::string,double>;
-
-struct LimitsInfo {
-
-enum class AXES_RATIO {NONE,EQUAL};
-
-double     xmin;
-double     xmax;
-double     ymin;
-double     ymax;
-
-double     xmin_value;
-double     xmax_value;
-double     ymin_value;
-double     ymax_value;
-
-bool       value_init;
-
-bool       xmin_set;
-bool       xmax_set;
-bool       ymin_set;
-bool       ymax_set;
-
-AXES_RATIO axes_ratio;
-
-};
 
 class Figure : public QWidget {
 

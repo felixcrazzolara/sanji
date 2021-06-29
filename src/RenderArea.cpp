@@ -11,11 +11,13 @@ RenderArea::RenderArea(QWidget*    parent,
     QWidget(parent),
     plot_area_(plot_area_),
     tick_area_x_(ticks_area_x),
-    tick_area_y_(ticks_area_y)
+    tick_area_y_(ticks_area_y),
+    plot_ui_(new PlotUI())
 {
     plot_area_->setParent(this);
     tick_area_x_->setParent(this);
     tick_area_y_->setParent(this);
+    plot_ui_->setParent(this);
     this->show();
 }
 
@@ -23,6 +25,7 @@ RenderArea::~RenderArea() {
     delete plot_area_;
     delete tick_area_x_;
     delete tick_area_y_;
+    delete plot_ui_;
 }
 
 void RenderArea::paintEvent(QPaintEvent* event) {
@@ -54,6 +57,7 @@ void RenderArea::resizeEvent(QResizeEvent* event) {
     plot_area_->setGeometry(lw,0,geom.width()-lw,geom.height()-lh);
     tick_area_y_->setGeometry(0,0,lw,geom.height()-lh);
     tick_area_x_->setGeometry(lw,geom.height()-lh,geom.width()-lw,lh);
+    plot_ui_->setGeometry(geom.width()-PLOT_UI_WIDTH,0,PLOT_UI_WIDTH,PLOT_UI_HEIGHT);
 }
 
 void RenderArea::setPlotBackgroundColor(const uint32_t color) {

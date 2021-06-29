@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TicksArea.hpp"
+#include "LimitsInfo.hpp"
 
 namespace sanji_ {
 

@@ -4,11 +4,9 @@
 #include <QLabel>
 #include <vector>
 #include "PlotArea.hpp"
+#include "LimitsInfo.hpp"
 
 namespace sanji_ {
-
-// Forward declarations
-struct LimitsInfo;
 
 /* Type definitions */
 template <typename T>

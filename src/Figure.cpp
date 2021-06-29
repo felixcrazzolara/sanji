@@ -1,8 +1,8 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
-#include <limits>
 #include <cmath>
+#include <iostream>
 #include "Figure.hpp"
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
@@ -54,7 +54,10 @@ Figure::~Figure() {
 
 void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority) {
     // Check the arguments
-    if (x.rows() != y.rows()) throw new std::runtime_error("Figure::plot: x.rows() != y.rows()");
+    if (x.rows() != y.rows()) {
+        std::cout << "Figure::plot: x.rows() != y.rows()" << std::endl;
+        abort();
+    }
 
     // Configure the pen
     uint32_t color;
@@ -101,29 +104,29 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
         limits_info_[current_render_area_idx_].ymax_value = ymax;
         limits_info_[current_render_area_idx_].value_init = true;
     }
-    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin)
-        limits_info_[current_render_area_idx_].xmin = xmin - 0.025*(xmax-xmin);
-    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax)
-        limits_info_[current_render_area_idx_].xmax = xmax + 0.025*(xmax-xmin);
-    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin)
-        limits_info_[current_render_area_idx_].ymin = ymin - 0.025*(ymax-ymin);
-    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax)
-        limits_info_[current_render_area_idx_].ymax = ymax + 0.025*(ymax-ymin);
-    if (limits_info_[current_render_area_idx_].xmin == limits_info_[current_render_area_idx_].xmax)
-        if (limits_info_[current_render_area_idx_].xmin == 0) {
-            limits_info_[current_render_area_idx_].xmin = -1.0-1e-3;
-            limits_info_[current_render_area_idx_].xmax =  1.0+1e-3;
+    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin())
+        limits_info_[current_render_area_idx_].set_xmin(xmin - 0.025*(xmax-xmin));
+    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax())
+        limits_info_[current_render_area_idx_].set_xmax(xmax + 0.025*(xmax-xmin));
+    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin())
+        limits_info_[current_render_area_idx_].set_ymin(ymin - 0.025*(ymax-ymin));
+    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax())
+        limits_info_[current_render_area_idx_].set_ymax(ymax + 0.025*(ymax-ymin));
+    if (limits_info_[current_render_area_idx_].xmin() == limits_info_[current_render_area_idx_].xmax())
+        if (limits_info_[current_render_area_idx_].xmin() == 0) {
+            limits_info_[current_render_area_idx_].set_xmin(-1.0-1e-3);
+            limits_info_[current_render_area_idx_].set_xmax( 1.0+1e-3);
         } else {
-            limits_info_[current_render_area_idx_].xmin = 0.9*limits_info_[current_render_area_idx_].xmin;
-            limits_info_[current_render_area_idx_].xmax = 1.1*limits_info_[current_render_area_idx_].xmax;
+            limits_info_[current_render_area_idx_].set_xmin(0.9*limits_info_[current_render_area_idx_].xmin());
+            limits_info_[current_render_area_idx_].set_xmax(1.1*limits_info_[current_render_area_idx_].xmax());
         }
-    if (limits_info_[current_render_area_idx_].ymin == limits_info_[current_render_area_idx_].ymax)
-        if (limits_info_[current_render_area_idx_].ymin == 0) {
-            limits_info_[current_render_area_idx_].ymin = -1.0-1e-3;
-            limits_info_[current_render_area_idx_].ymax =  1.0+1e-3;
+    if (limits_info_[current_render_area_idx_].ymin() == limits_info_[current_render_area_idx_].ymax())
+        if (limits_info_[current_render_area_idx_].ymin() == 0) {
+            limits_info_[current_render_area_idx_].set_ymin(-1.0-1e-3);
+            limits_info_[current_render_area_idx_].set_ymax( 1.0+1e-3);
         } else {
-            limits_info_[current_render_area_idx_].ymin = 0.9*limits_info_[current_render_area_idx_].ymin;
-            limits_info_[current_render_area_idx_].ymax = 1.1*limits_info_[current_render_area_idx_].ymax;
+            limits_info_[current_render_area_idx_].set_ymin(0.9*limits_info_[current_render_area_idx_].ymin());
+            limits_info_[current_render_area_idx_].set_ymax(1.1*limits_info_[current_render_area_idx_].ymax());
         }
 
     // Copy the data
@@ -155,11 +158,14 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
 
     // Check if a colormap shall be used
     bool use_colormap = false;
-    double arrow_length;
+    double arrow_length = -1.0;
     if (style.find("use_colormap") != style.end()) {
         if (style.find("arrow_length") == style.end()) throw new std::runtime_error("Must provided argument 'arrow_length' when using the option 'use_colormap' for 'quiver'.");
         use_colormap = true;
         arrow_length = style.at("arrow_length");
+    } else {
+        if (style.find("arrow_length") != style.end())
+            arrow_length = style.at("arrow_length");
     }
 
     // Determine the min/max values
@@ -169,7 +175,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     double ymax;
     for (uint i = 0; i < x.rows(); ++i) {
         double u_,v_;
-        if (use_colormap) {
+        if (use_colormap || arrow_length > 0.0) {
             const double phi = std::atan2(v(i),u(i));
             u_               = std::cos(phi)*arrow_length;
             v_               = std::sin(phi)*arrow_length;
@@ -199,29 +205,29 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     }
 
     // Possibly update the axis limits
-    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin)
-        limits_info_[current_render_area_idx_].xmin = xmin - 0.025*(xmax-xmin);
-    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax)
-        limits_info_[current_render_area_idx_].xmax = xmax + 0.025*(xmax-xmin);
-    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin)
-        limits_info_[current_render_area_idx_].ymin = ymin - 0.025*(ymax-ymin);
-    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax)
-        limits_info_[current_render_area_idx_].ymax = ymax + 0.025*(ymax-ymin);
-    if (limits_info_[current_render_area_idx_].xmin == limits_info_[current_render_area_idx_].xmax)
-        if (limits_info_[current_render_area_idx_].xmin == 0) {
-            limits_info_[current_render_area_idx_].xmin = -1.0-1e-3;
-            limits_info_[current_render_area_idx_].xmax =  1.0+1e-3;
+    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin())
+        limits_info_[current_render_area_idx_].set_xmin(xmin - 0.025*(xmax-xmin));
+    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax())
+        limits_info_[current_render_area_idx_].set_xmax(xmax + 0.025*(xmax-xmin));
+    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin())
+        limits_info_[current_render_area_idx_].set_ymin(ymin - 0.025*(ymax-ymin));
+    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax())
+        limits_info_[current_render_area_idx_].set_ymax(ymax + 0.025*(ymax-ymin));
+    if (limits_info_[current_render_area_idx_].xmin() == limits_info_[current_render_area_idx_].xmax())
+        if (limits_info_[current_render_area_idx_].xmin() == 0) {
+            limits_info_[current_render_area_idx_].set_xmin(-1.0-1e-3);
+            limits_info_[current_render_area_idx_].set_xmax( 1.0+1e-3);
         } else {
-            limits_info_[current_render_area_idx_].xmin = 0.9*limits_info_[current_render_area_idx_].xmin;
-            limits_info_[current_render_area_idx_].xmax = 1.1*limits_info_[current_render_area_idx_].xmax;
+            limits_info_[current_render_area_idx_].set_xmin(0.9*limits_info_[current_render_area_idx_].xmin());
+            limits_info_[current_render_area_idx_].set_xmax(1.1*limits_info_[current_render_area_idx_].xmax());
         }
-    if (limits_info_[current_render_area_idx_].ymin == limits_info_[current_render_area_idx_].ymax)
-        if (limits_info_[current_render_area_idx_].ymin == 0) {
-            limits_info_[current_render_area_idx_].ymin = -1.0-1e-3;
-            limits_info_[current_render_area_idx_].ymax =  1.0+1e-3;
+    if (limits_info_[current_render_area_idx_].ymin() == limits_info_[current_render_area_idx_].ymax())
+        if (limits_info_[current_render_area_idx_].ymin() == 0) {
+            limits_info_[current_render_area_idx_].set_ymin(-1.0-1e-3);
+            limits_info_[current_render_area_idx_].set_ymax( 1.0+1e-3);
         } else {
-            limits_info_[current_render_area_idx_].ymin = 0.9*limits_info_[current_render_area_idx_].ymin;
-            limits_info_[current_render_area_idx_].ymax = 1.1*limits_info_[current_render_area_idx_].ymax;
+            limits_info_[current_render_area_idx_].set_ymin(0.9*limits_info_[current_render_area_idx_].ymin());
+            limits_info_[current_render_area_idx_].set_ymax(1.1*limits_info_[current_render_area_idx_].ymax());
         }
 
     // Copy the data
@@ -257,9 +263,7 @@ void Figure::checkRenderArea() {
     if (current_render_area_idx_ == -1) {
         line_data_.resize(1);
         arrow_data_.resize(1);
-        limits_info_.emplace_back(LimitsInfo{std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),
-                                             std::numeric_limits<double>::max(),-std::numeric_limits<double>::max(),
-                                             0,0,0,0,false,false,false,false,false,LimitsInfo::AXES_RATIO::NONE});
+        limits_info_.emplace_back(LimitsInfo());
         PlotArea* plot_area = new PlotArea(&line_data_[0], &arrow_data_[0], &limits_info_[0]);
         render_areas_.push_back(new RenderArea(this, plot_area, new HTicksArea(&limits_info_[0],plot_area), new VTicksArea(&limits_info_[0],plot_area)));
         const QRect& geom = geometry();
@@ -276,28 +280,28 @@ void Figure::setAxesRatio(const std::string& axes_ratio) {
 
 void Figure::setxmin(const double xmin) {
     if (current_render_area_idx_ != -1) {
-        limits_info_[current_render_area_idx_].xmin     = xmin;
+        limits_info_[current_render_area_idx_].set_xmin(xmin);
         limits_info_[current_render_area_idx_].xmin_set = true;
     }
 }
 
 void Figure::setxmax(const double xmax) {
     if (current_render_area_idx_ != -1) {
-        limits_info_[current_render_area_idx_].xmax     = xmax;
+        limits_info_[current_render_area_idx_].set_xmax(xmax);
         limits_info_[current_render_area_idx_].xmax_set = true;
     }
 }
 
 void Figure::setymin(const double ymin) {
     if (current_render_area_idx_ != -1) {
-        limits_info_[current_render_area_idx_].ymin     = ymin;
+        limits_info_[current_render_area_idx_].set_ymin(ymin);
         limits_info_[current_render_area_idx_].ymin_set = true;
     }
 }
 
 void Figure::setymax(const double ymax) {
     if (current_render_area_idx_ != -1) {
-        limits_info_[current_render_area_idx_].ymax     = ymax;
+        limits_info_[current_render_area_idx_].set_ymax(ymax);
         limits_info_[current_render_area_idx_].ymax_set = true;
     }
 }

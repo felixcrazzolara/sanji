@@ -22,7 +22,8 @@ PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*              
     background_color_{255,255,255},
     line_data_(line_data),
     arrow_data_(arrow_data),
-    limits_info_(limits_info)
+    limits_info_(limits_info),
+    selection_active_{false}
 {}
 
 void PlotArea::paintEvent(QPaintEvent* event) {
@@ -40,21 +41,21 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     // Create a lambda to convert x-y-coordinates to pixel coordinates
     double xmin;
     double ymax;
-    double x_to_px = geom.width()/(limits_info_->xmax-limits_info_->xmin);
-    double y_to_px = geom.height()/(limits_info_->ymax-limits_info_->ymin);
+    double x_to_px = geom.width()/(limits_info_->xmax()-limits_info_->xmin());
+    double y_to_px = geom.height()/(limits_info_->ymax()-limits_info_->ymin());
     if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
         if (x_to_px >= y_to_px) {
             x_to_px = y_to_px;
-            ymax    = limits_info_->ymax;
-            xmin    = limits_info_->xmin-std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
+            ymax    = limits_info_->ymax();
+            xmin    = limits_info_->xmin()-std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
         } else {
             y_to_px = x_to_px;
-            xmin    = limits_info_->xmin;
-            ymax    = limits_info_->ymax+std::max(geom.height()/y_to_px-(limits_info_->ymax-limits_info_->ymin),0.0)/2.0;
+            xmin    = limits_info_->xmin();
+            ymax    = limits_info_->ymax()+std::max(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin()),0.0)/2.0;
         }
     } else {
-        xmin    = limits_info_->xmin;
-        ymax    = limits_info_->ymax;
+        xmin    = limits_info_->xmin();
+        ymax    = limits_info_->ymax();
     }
     const auto toQPoint = [xmin,ymax,x_to_px,y_to_px](const double x, const double y)->QPoint {
         return QPoint((x-xmin)*x_to_px,(ymax-y)*y_to_px);
@@ -131,7 +132,7 @@ void PlotArea::paintEvent(QPaintEvent* event) {
         for (uint i = 0; i < x.rows(); ++i) {
             // Define the arrow length
             const double data_length     = std::sqrt(v(i)*v(i)+u(i)*u(i));
-            const double arrow_length    = use_colormap ? style.at("arrow_length") : data_length;
+            const double arrow_length    = use_colormap || style.find("arrow_length") != style.end() ? style.at("arrow_length") : data_length;
 
             // Compute the coordinates of the scaled and rotated arrow
             const double phi             = std::atan2(v(i),u(i));
@@ -169,6 +170,32 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             painter.drawConvexPolygon(tail_points,4);
         }
     }
+
+    // Draw the selection rectangle (if active)
+    if (selection_active_) {
+        QPen pen{QColor(255,255,255)}; pen.setWidth(1);
+        painter.setPen(pen);
+        painter.drawLine(selection_start_.x(),selection_start_.y(),selection_start_.x(),selection_end_.y());
+        painter.drawLine(selection_start_.x(),selection_end_.y(),selection_end_.x(),selection_end_.y());
+        painter.drawLine(selection_end_.x(),selection_end_.y(),selection_end_.x(),selection_start_.y());
+        painter.drawLine(selection_end_.x(),selection_start_.y(),selection_start_.x(),selection_start_.y());
+    }
+}
+
+void PlotArea::mousePressEvent(QMouseEvent *event) {
+    selection_start_  = event->pos();
+    selection_active_ = true;
+}
+
+void PlotArea::mouseReleaseEvent(QMouseEvent *event) {
+    selection_end_    = event->pos();
+    selection_active_ = false;
+    update();
+}
+
+void PlotArea::mouseMoveEvent(QMouseEvent *event) {
+    selection_end_ = event->pos();
+    update();
 }
 
 void PlotArea::setBackgroundColor(const uint32_t color) {

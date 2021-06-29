@@ -4,11 +4,9 @@
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
 #include "VTicksArea.hpp"
+#include "PlotUI.hpp"
 
 namespace sanji_ {
-
-// Forward declarations
-struct LimitsInfo;
 
 class RenderArea : public QWidget {
 
@@ -39,6 +37,7 @@ private:
 PlotArea*   plot_area_;
 HTicksArea* tick_area_x_;
 VTicksArea* tick_area_y_;
+PlotUI*     plot_ui_;
 
 };
 

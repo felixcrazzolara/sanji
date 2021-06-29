@@ -24,7 +24,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
 
     const uint tick_height = 11;
 
-    const uint num_digits = 5;
+    const uint num_digits_after_comma = 5;
 
     // Draw a thin horizontal line first
     painter.setPen(QPen(QColor(171,171,171)));
@@ -32,41 +32,48 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
-    double x_to_px        = plot_geom.width()/(limits_info_->xmax-limits_info_->xmin);
-    double y_to_px        = plot_geom.height()/(limits_info_->ymax-limits_info_->ymin);
-    double xmin_          = limits_info_->xmin;
-    double xmax_          = limits_info_->xmax;
+    double x_to_px        = plot_geom.width()/(limits_info_->xmax()-limits_info_->xmin());
+    double y_to_px        = plot_geom.height()/(limits_info_->ymax()-limits_info_->ymin());
+    double xmin_          = limits_info_->xmin();
+    double xmax_          = limits_info_->xmax();
     if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
         if (x_to_px >= y_to_px) {
             x_to_px = y_to_px;
-            xmin_   = limits_info_->xmin-std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
-            xmax_   = limits_info_->xmax+std::max(geom.width()/x_to_px-(limits_info_->xmax-limits_info_->xmin),0.0)/2.0;
+            xmin_   = limits_info_->xmin()-std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
+            xmax_   = limits_info_->xmax()+std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
         }
     }
 
-    // Determine the tick locations
-    const double mult_mult        = 2.0;
+    /* Determine the tick locations */
+    // Determine the minimum number of pixels per tick
     QFontMetrics fm(QFont("Monospace",10));
-    uint num_pixel_per_tick       = 1000;
-    double mult                   = 1.0;
-    char* buf                     = new char[num_digits];
-    for (uint i = 0; i < num_digits-1; ++i) buf[i] = '0';
-    buf[num_digits-1]             = '\0';
+    char* buf                     = new char[num_digits_after_comma+1];
+    for (uint i = 0; i < num_digits_after_comma-1; ++i) buf[i] = '0';
+    buf[num_digits_after_comma]   = '\0';
     const uint min_pixel_per_tick = fm.boundingRect(QString::fromStdString("-0."+std::string(buf)+"e-100")).width();
     delete[] buf;
-    while (num_pixel_per_tick > min_pixel_per_tick) {
+
+    // Minimize 'num_pixel_per_tick' while making sure that 'num_pixel_per_tick' >= min_pixel_per_tick
+    int num_pixel_per_tick        = -1;
+    const double mult_mult        = 2.0;
+    double mult                   = 1.0;
+    do {
         const int xmin     = std::ceil(mult*xmin_);
         const int xmax     = std::floor(mult*xmax_);
         if (xmax-xmin+1 != 0) num_pixel_per_tick = geom.width()/(xmax-xmin+1);
         mult              *= mult_mult;
-    }
-    mult /= mult_mult;
+    } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
+
+    //--> At this point it holds that num_pixel_per_tick < min_pixel_per_tick
+
     while (num_pixel_per_tick < min_pixel_per_tick) {
         mult              /= mult_mult;
         const int xmin     = std::ceil(mult*xmin_);
         const int xmax     = std::floor(mult*xmax_);
         num_pixel_per_tick = geom.width()/(xmax-xmin+1);
     }
+
+    //--> At this point it holds that num_pixel_per_tick >= min_pixel_per_tick
 
     // Plot the ticks
     painter.setPen(QPen(QColor(0,0,0)));
@@ -82,13 +89,14 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         if (x == 0.0) {
             sprintf(chr_buffer,"0\n");
         } else {
+            // TODO: Check this again
             const double exp = std::log10(std::abs(x));
-            if (exp < num_digits && exp >= 0.0) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(std::floor(exp))-1)+"f\n").c_str(),x);
-            } else if (exp < 0.0 && exp >= num_digits-1) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"f\n").c_str(),x);
+            if (exp < num_digits_after_comma && exp >= 0.0) {
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-static_cast<uint>(std::floor(exp))-1)+"f\n").c_str(),x);
+            } else if (exp < 0.0 && exp >= num_digits_after_comma-1) {
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"f\n").c_str(),x);
             } else {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"e\n").c_str(),x);
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"e\n").c_str(),x);
             }
         }
         const int xcoord        = toXCoord(x);

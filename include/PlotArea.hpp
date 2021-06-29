@@ -1,12 +1,15 @@
 #pragma once
 
 #include <QWidget>
+#include <QPoint>
+#include <QMouseEvent>
 #include <Eigen/Dense>
 #include <tuple>
 #include <vector>
 #include <memory>
 #include <unordered_set>
 #include <string>
+#include "LimitsInfo.hpp"
 
 namespace sanji_ {
 
@@ -22,9 +25,6 @@ using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
 using Style      = std::unordered_map<std::string,double>;
-
-// Forward declarations
-struct LimitsInfo;
 
 class PlotArea : public QWidget {
 
@@ -42,7 +42,10 @@ void setBackgroundColor(const uint32_t color);
 
 protected:
 
-void paintEvent(QPaintEvent* event) override;
+void paintEvent(QPaintEvent* event)        override;
+void mousePressEvent(QMouseEvent *event)   override;
+void mouseReleaseEvent(QMouseEvent *event) override;
+void mouseMoveEvent(QMouseEvent *event)    override;
 
 private:
 
@@ -51,6 +54,10 @@ QColor                                                           background_colo
 const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data_;
 const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data_;
 const LimitsInfo*                                                limits_info_;
+
+QPoint                                                           selection_start_;
+QPoint                                                           selection_end_;
+bool                                                             selection_active_;
 
 };
 
