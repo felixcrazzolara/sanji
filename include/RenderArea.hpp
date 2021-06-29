@@ -18,7 +18,8 @@ public:
 explicit RenderArea(QWidget*    parent,
                     PlotArea*   plot_area_,
                     HTicksArea* ticks_area_x,
-                    VTicksArea* ticks_area_y);
+                    VTicksArea* ticks_area_y,
+                    PlotUI*     plot_ui);
 ~RenderArea();                    
 
 /* Setter */

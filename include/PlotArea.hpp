@@ -35,7 +35,7 @@ public:
 /* Constructor */
 explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
-                  const LimitsInfo*                                                limits_info);
+                  LimitsInfo*                                                      limits_info);
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);
@@ -53,7 +53,7 @@ QColor                                                           background_colo
 
 const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data_;
 const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data_;
-const LimitsInfo*                                                limits_info_;
+LimitsInfo*                                                      limits_info_;
 
 QPoint                                                           selection_start_;
 QPoint                                                           selection_end_;

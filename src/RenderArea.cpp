@@ -7,12 +7,13 @@ namespace sanji_ {
 RenderArea::RenderArea(QWidget*    parent,
                        PlotArea*   plot_area_,
                        HTicksArea* ticks_area_x,
-                       VTicksArea* ticks_area_y) :
+                       VTicksArea* ticks_area_y,
+                       PlotUI*     plot_ui) :
     QWidget(parent),
     plot_area_(plot_area_),
     tick_area_x_(ticks_area_x),
     tick_area_y_(ticks_area_y),
-    plot_ui_(new PlotUI())
+    plot_ui_(plot_ui)
 {
     plot_area_->setParent(this);
     tick_area_x_->setParent(this);

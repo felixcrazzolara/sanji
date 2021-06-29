@@ -18,7 +18,7 @@ using complex = std::complex<double>;
 
 PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
                    const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
-                   const LimitsInfo*                                                limits_info) :
+                   LimitsInfo*                                                      limits_info) :
     background_color_{255,255,255},
     line_data_(line_data),
     arrow_data_(arrow_data),
@@ -183,17 +183,74 @@ void PlotArea::paintEvent(QPaintEvent* event) {
 }
 
 void PlotArea::mousePressEvent(QMouseEvent *event) {
+    // Remember the start of the selection and activate it
     selection_start_  = event->pos();
     selection_active_ = true;
 }
 
 void PlotArea::mouseReleaseEvent(QMouseEvent *event) {
+    // Store the end of the selection and deactivate it
     selection_end_    = event->pos();
     selection_active_ = false;
-    update();
+
+    /* Update the axes limits */
+    const uint  diff_px_x = std::abs(selection_start_.x() - selection_end_.x());
+    const uint  diff_px_y = std::abs(selection_start_.y() - selection_end_.y());
+    const QRect geom      = geometry();
+    if (diff_px_x > 0 && diff_px_y > 0) {
+        // Compute the plot area limits
+        double xmin;
+        double ymax;
+        double x_to_px = geom.width()/(limits_info_->xmax()-limits_info_->xmin());
+        double y_to_px = geom.height()/(limits_info_->ymax()-limits_info_->ymin());
+        if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
+            if (x_to_px >= y_to_px) {
+                x_to_px = y_to_px;
+                ymax    = limits_info_->ymax();
+                xmin    = limits_info_->xmin()-std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
+            } else {
+                y_to_px = x_to_px;
+                xmin    = limits_info_->xmin();
+                ymax    = limits_info_->ymax()+std::max(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin()),0.0)/2.0;
+            }
+        } else {
+            xmin    = limits_info_->xmin();
+            ymax    = limits_info_->ymax();
+        }
+
+        // Compute the coordinates of the selection
+        const double px_x_sel_low  = std::min(selection_start_.x(),selection_end_.x());
+        const double px_x_sel_high = std::max(selection_start_.x(),selection_end_.x());
+        const double px_y_sel_low  = std::min(selection_start_.y(),selection_end_.y());
+        const double px_y_sel_high = std::max(selection_start_.y(),selection_end_.y());
+        const double x_sel_low     = xmin + px_x_sel_low/x_to_px;
+        const double x_sel_high    = xmin + px_x_sel_high/x_to_px;
+        const double y_sel_low     = ymax - px_y_sel_high/y_to_px;
+        const double y_sel_high    = ymax - px_y_sel_low/y_to_px;
+
+        if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
+            double x_to_px = diff_px_x/(x_sel_high-x_sel_low);
+            double y_to_px = diff_px_y/(y_sel_high-y_sel_low);
+            if (x_to_px >= y_to_px) {
+                x_to_px = y_to_px;
+                const double x_mean = (x_sel_low+x_sel_high)/2.0;
+                limits_info_->add_axes_limits(x_mean-0.5*diff_px_x/x_to_px,x_mean+0.5*diff_px_x/x_to_px,y_sel_low,y_sel_high);
+            } else {
+                y_to_px = x_to_px;
+                const double y_mean = (y_sel_low+y_sel_high)/2.0;
+                limits_info_->add_axes_limits(x_sel_low,x_sel_high,y_mean-0.5*diff_px_y/y_to_px,y_mean+0.5*diff_px_y/y_to_px);
+            }
+        } else {
+            limits_info_->add_axes_limits(x_sel_low,x_sel_high,y_sel_low,y_sel_high);
+        }
+
+        // Update the entire plot
+        parentWidget()->update();
+    }
 }
 
 void PlotArea::mouseMoveEvent(QMouseEvent *event) {
+    // Store the current end of the selection and update the graph
     selection_end_ = event->pos();
     update();
 }

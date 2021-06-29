@@ -40,10 +40,35 @@ double xmax() const { return axes_limits_hist[hist_idx].xmax; }
 double ymin() const { return axes_limits_hist[hist_idx].ymin; }
 double ymax() const { return axes_limits_hist[hist_idx].ymax; }
 
-void set_xmin(double xmin) { axes_limits_hist[hist_idx].xmin = xmin; }
-void set_xmax(double xmax) { axes_limits_hist[hist_idx].xmax = xmax; }
-void set_ymin(double ymin) { axes_limits_hist[hist_idx].ymin = ymin; }
-void set_ymax(double ymax) { axes_limits_hist[hist_idx].ymax = ymax; }
+void set_xmin(const double xmin) { axes_limits_hist[hist_idx].xmin = xmin; }
+void set_xmax(const double xmax) { axes_limits_hist[hist_idx].xmax = xmax; }
+void set_ymin(const double ymin) { axes_limits_hist[hist_idx].ymin = ymin; }
+void set_ymax(const double ymax) { axes_limits_hist[hist_idx].ymax = ymax; }
+
+void add_axes_limits(const double xmin, const double xmax, const double ymin, const double ymax) {
+    if (hist_idx < axes_limits_hist.size()-1) {
+        hist_idx += 1;
+        axes_limits_hist[hist_idx].xmin = xmin;
+        axes_limits_hist[hist_idx].xmax = xmax;
+        axes_limits_hist[hist_idx].ymin = ymin;
+        axes_limits_hist[hist_idx].ymax = ymax;
+    } else {
+        axes_limits_hist.push_back(AxesLimits{xmin,xmax,ymin,ymax});
+        hist_idx += 1;
+    }
+}
+
+void decrease_hist_index_if_possible() {
+    if (hist_idx > 0) --hist_idx;
+}
+
+void increase_hist_index_if_possible() {
+    if (hist_idx < axes_limits_hist.size()-1) ++hist_idx;
+}
+
+void reset_hist_index() {
+    hist_idx = 0;
+}
 
 double     xmin_value;
 double     xmax_value;

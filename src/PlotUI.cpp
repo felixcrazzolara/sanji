@@ -6,8 +6,9 @@
 
 namespace sanji_ {
 
-PlotUI::PlotUI() :
-    background_color_{255,255,255}
+PlotUI::PlotUI(LimitsInfo* limits_info) :
+    background_color_{255,255,255},
+    limits_info_{limits_info}
 {}
 
 void PlotUI::paintEvent(QPaintEvent* event) {
@@ -43,11 +44,14 @@ void PlotUI::mouseReleaseEvent(QMouseEvent *event) {
     // Handle the event
     if (button_idx == press_index_) {
         switch (button_idx) {
-            case 0:  std::cout << "Hello from 0" << std::endl; break;
-            case 1:  std::cout << "Hello from 1" << std::endl; break;
-            case 2:  std::cout << "Hello from 2" << std::endl; break;
+            case 0:  limits_info_->decrease_hist_index_if_possible(); break;
+            case 1:  limits_info_->increase_hist_index_if_possible(); break;
+            case 2:  limits_info_->reset_hist_index();                break;
             default: break;
         }
+
+        // Update the entire plot
+        parentWidget()->update();
     }
 }
 

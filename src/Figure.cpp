@@ -265,7 +265,7 @@ void Figure::checkRenderArea() {
         arrow_data_.resize(1);
         limits_info_.emplace_back(LimitsInfo());
         PlotArea* plot_area = new PlotArea(&line_data_[0], &arrow_data_[0], &limits_info_[0]);
-        render_areas_.push_back(new RenderArea(this, plot_area, new HTicksArea(&limits_info_[0],plot_area), new VTicksArea(&limits_info_[0],plot_area)));
+        render_areas_.push_back(new RenderArea(this, plot_area, new HTicksArea(&limits_info_[0],plot_area), new VTicksArea(&limits_info_[0],plot_area), new PlotUI(&limits_info_[0])));
         const QRect& geom = geometry();
         render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
         current_render_area_idx_ = 0;
