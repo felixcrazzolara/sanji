@@ -39,26 +39,10 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     painter.drawRect(0,0,geom.width(),geom.height());
 
     // Create a lambda to convert x-y-coordinates to pixel coordinates
-    double xmin;
-    double ymax;
-    double x_to_px = geom.width()/(limits_info_->xmax()-limits_info_->xmin());
-    double y_to_px = geom.height()/(limits_info_->ymax()-limits_info_->ymin());
-    if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
-        if (x_to_px >= y_to_px) {
-            x_to_px = y_to_px;
-            ymax    = limits_info_->ymax();
-            xmin    = limits_info_->xmin()-std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
-        } else {
-            y_to_px = x_to_px;
-            xmin    = limits_info_->xmin();
-            ymax    = limits_info_->ymax()+std::max(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin()),0.0)/2.0;
-        }
-    } else {
-        xmin    = limits_info_->xmin();
-        ymax    = limits_info_->ymax();
-    }
-    const auto toQPoint = [xmin,ymax,x_to_px,y_to_px](const double x, const double y)->QPoint {
-        return QPoint((x-xmin)*x_to_px,(ymax-y)*y_to_px);
+    const QRect plot_geom = geometry();
+    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] = limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
+    const auto toQPoint = [xplot_min,yplot_max,dx_to_px,dy_to_px](const double x, const double y)->QPoint {
+        return QPoint((x-xplot_min)*dx_to_px,(yplot_max-y)*dy_to_px);
     };
 
     // Plot the line data

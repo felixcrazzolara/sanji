@@ -2,8 +2,14 @@
 
 #include <vector>
 #include <limits>
+#include <tuple>
+#include <cmath>
 
 namespace sanji_ {
+
+/* Type definitions */
+template <class... Types>
+using tuple = std::tuple<Types...>;
 
 struct AxesLimits {
 
@@ -33,6 +39,73 @@ LimitsInfo() : xmin_value{ std::numeric_limits<double>::max()},
                hist_idx{0}
 {
     axes_limits_hist.resize(1);
+}
+
+tuple<double,double,double,double,double,double> getScalingsAndLimits(const double plot_width_px, const double plot_height_px) const {
+    // Define some variables for convenience
+    const bool   x_both_set = xmin_set && xmax_set;
+    const bool   y_both_set = ymin_set && ymax_set;
+          double xplot_min  = xmin();
+          double xplot_max  = xmax();
+          double yplot_min  = ymin();
+          double yplot_max  = ymax();
+          double xplot_mean = (xplot_max+xplot_min)/2.0;
+          double yplot_mean = (yplot_max+yplot_min)/2.0;
+          double dx_to_px   = plot_width_px / (xmax() - xmin());
+          double dy_to_px   = plot_height_px / (ymax() - ymin());
+    if (x_both_set && y_both_set) {
+        // Determine the correct scalings
+        // TODO: What if one of the denominators is zero?
+        if (axes_ratio == AXES_RATIO::EQUAL) {
+            if (dx_to_px > dy_to_px) {
+                dx_to_px  = dy_to_px;
+                xplot_min = xplot_mean - plot_width_px/2.0/dx_to_px;
+                xplot_max = xplot_mean + plot_width_px/2.0/dx_to_px;
+            } else if (dx_to_px < dy_to_px) {
+                dy_to_px  = dx_to_px;
+                yplot_min = yplot_mean - plot_height_px/2.0/dy_to_px;
+                yplot_max = yplot_mean + plot_height_px/2.0/dy_to_px;
+            }
+        }
+        if (axes_ratio == AXES_RATIO::EQUAL) dx_to_px = dy_to_px = std::min(dx_to_px,dy_to_px);
+    } else if (x_both_set) {
+        if (axes_ratio == AXES_RATIO::EQUAL) {
+            dy_to_px = dx_to_px;
+            if (ymin_set)      yplot_max = yplot_min + plot_height_px/dy_to_px;
+            else if (ymax_set) yplot_min = yplot_max - plot_height_px/dy_to_px;
+            else {
+                               yplot_min = (yplot_max+yplot_min)/2.0 - plot_height_px/2.0/dy_to_px;
+                               yplot_max = (yplot_max+yplot_min)/2.0 + plot_height_px/2.0/dy_to_px;
+            }
+        }
+    } else if (y_both_set) {
+        if (axes_ratio == AXES_RATIO::EQUAL) {
+            dx_to_px = dy_to_px;
+            if (xmin_set)      xplot_max = xplot_min + plot_width_px/dx_to_px;
+            else if (xmax_set) xplot_min = xplot_max - plot_width_px/dx_to_px;
+            else {
+                               xplot_min = (xplot_max+xplot_min)/2.0 - plot_width_px/2.0/dx_to_px;
+                               xplot_max = (xplot_max+xplot_min)/2.0 + plot_width_px/2.0/dx_to_px;
+            }
+        }
+    } else {
+        if (axes_ratio == AXES_RATIO::EQUAL) {
+            dx_to_px = dy_to_px = std::min(dx_to_px,dy_to_px);
+            if (xmin_set)      xplot_max = xplot_min + plot_width_px/dx_to_px;
+            else if (xmax_set) xplot_min = xplot_max - plot_width_px/dx_to_px;
+            else {
+                               xplot_min = (xplot_max+xplot_min)/2.0 - plot_width_px/2.0/dx_to_px;
+                               xplot_max = (xplot_max+xplot_min)/2.0 + plot_width_px/2.0/dx_to_px;
+            }
+            if (ymin_set)      yplot_max = yplot_min + plot_height_px/dy_to_px;
+            else if (ymax_set) yplot_min = yplot_max - plot_height_px/dy_to_px;
+            else {
+                               yplot_min = (yplot_max+yplot_min)/2.0 - plot_height_px/2.0/dy_to_px;
+                               yplot_max = (yplot_max+yplot_min)/2.0 + plot_height_px/2.0/dy_to_px;
+            }
+        }
+    }
+    return {xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px};
 }
 
 double xmin() const { return axes_limits_hist[hist_idx].xmin; }

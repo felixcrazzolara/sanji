@@ -32,17 +32,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
-    double x_to_px        = plot_geom.width()/(limits_info_->xmax()-limits_info_->xmin());
-    double y_to_px        = plot_geom.height()/(limits_info_->ymax()-limits_info_->ymin());
-    double xmin_          = limits_info_->xmin();
-    double xmax_          = limits_info_->xmax();
-    if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
-        if (x_to_px >= y_to_px) {
-            x_to_px = y_to_px;
-            xmin_   = limits_info_->xmin()-std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
-            xmax_   = limits_info_->xmax()+std::max(geom.width()/x_to_px-(limits_info_->xmax()-limits_info_->xmin()),0.0)/2.0;
-        }
-    }
+    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] = limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
 
     /* Determine the tick locations */
     // Determine the minimum number of pixels per tick
@@ -54,22 +44,28 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     delete[] buf;
 
     // Minimize 'num_pixel_per_tick' while making sure that 'num_pixel_per_tick' >= min_pixel_per_tick
-    int num_pixel_per_tick        = -1;
-    const double mult_mult        = 2.0;
-    double mult                   = 1.0;
+    int num_pixel_per_tick = -1;
+    const double mult_mult = 2.0;
+    double mult            = 1.0;
+    double mult10          = 1.0;
     do {
-        const int xmin     = std::ceil(mult*xmin_);
-        const int xmax     = std::floor(mult*xmax_);
+        const int xmin     = std::ceil(mult*mult10*xplot_min);
+        const int xmax     = std::floor(mult*mult10*xplot_max);
         if (xmax-xmin+1 != 0) num_pixel_per_tick = geom.width()/(xmax-xmin+1);
         mult              *= mult_mult;
+        if (mult >= 10.0) {
+            mult    = 1.0;
+            mult10 *= 10.0;
+        }
     } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
+    mult = mult*mult10;
 
     //--> At this point it holds that num_pixel_per_tick < min_pixel_per_tick
 
     while (num_pixel_per_tick < min_pixel_per_tick) {
         mult              /= mult_mult;
-        const int xmin     = std::ceil(mult*xmin_);
-        const int xmax     = std::floor(mult*xmax_);
+        const int xmin     = std::ceil(mult*xplot_min);
+        const int xmax     = std::floor(mult*xplot_max);
         num_pixel_per_tick = geom.width()/(xmax-xmin+1);
     }
 
@@ -78,10 +74,10 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     // Plot the ticks
     painter.setPen(QPen(QColor(0,0,0)));
     char* chr_buffer      = new char[20];
-    const double xmin     = std::ceil(mult*xmin_)/mult;
-    const double xmax     = std::floor(mult*xmax_)/mult;
-    const auto   toXCoord = [xmin_,x_to_px](const double x)->int {
-        return (x-xmin_)*x_to_px;
+    const double xmin     = std::ceil(mult*xplot_min)/mult;
+    const double xmax     = std::floor(mult*xplot_max)/mult;
+    const auto   toXCoord = [xplot_min,dx_to_px](const double x)->int {
+        return (x-xplot_min)*dx_to_px;
     };
     double x            = xmin;
     int label_count     = 0;

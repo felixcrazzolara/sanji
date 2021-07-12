@@ -3,7 +3,6 @@
 #include "VTicksArea.hpp"
 #include "Figure.hpp"
 #include <stdio.h>
-#include <quadmath.h>
 
 namespace sanji_ {
 
@@ -30,17 +29,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
-    double x_to_px        = plot_geom.width()/(limits_info_->xmax()-limits_info_->xmin());
-    double y_to_px        = plot_geom.height()/(limits_info_->ymax()-limits_info_->ymin());
-    double ymin_          = limits_info_->ymin();
-    double ymax_          = limits_info_->ymax();
-    if (limits_info_->axes_ratio == LimitsInfo::AXES_RATIO::EQUAL) {
-        if (x_to_px < y_to_px) {
-            y_to_px = x_to_px;
-            ymin_   = limits_info_->ymin()-std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin())),0.0)/2.0;
-            ymax_   = limits_info_->ymax()+std::max(static_cast<double>(geom.height()/y_to_px-(limits_info_->ymax()-limits_info_->ymin())),0.0)/2.0;
-        }
-    }
+    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] = limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
 
     /* Determine the tick locations */
     // Determine the minimum number of pixels per tick
@@ -48,22 +37,28 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     const uint min_pixel_per_tick = fm.boundingRect(QString("0")).height();
 
     // Minimize 'num_pixel_per_tick' while making sure that 'num_pixel_per_tick' >= 'min_pixel_per_tick'
-    int num_pixel_per_tick        = -1;
-    const double mult_mult        = 2.0;
-    double mult                   = 1.0;
+    int num_pixel_per_tick = -1;
+    const double mult_mult = 2.0;
+    double mult            = 1.0;
+    double mult10          = 1.0;
     do {
-        const int ymin     = std::ceil(mult*ymin_);
-        const int ymax     = std::floor(mult*ymax_);
+        const int ymin     = std::ceil(mult*mult10*yplot_min);
+        const int ymax     = std::floor(mult*mult10*yplot_max);
         if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
         mult              *= mult_mult;
+        if (mult >= 10.0) {
+            mult = 1.0;
+            mult10 *= 10.0;
+        }
     } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
+    mult = mult*mult10;
 
     //--> At this point it holds that 'num_pixel_per_tick' < 'min_pixel_per_tick'
 
     while (num_pixel_per_tick < min_pixel_per_tick) {
         mult              /= mult_mult;
-        const int ymin     = std::ceil(mult*ymin_);
-        const int ymax     = std::floor(mult*ymax_);
+        const int ymin     = std::ceil(mult*yplot_min);
+        const int ymax     = std::floor(mult*yplot_max);
         num_pixel_per_tick = geom.height()/(ymax-ymin+1);
     }
 
@@ -73,21 +68,21 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
     // Plot the ticks
     painter.setPen(QPen(QColor(0,0,0)));
-    char* chr_buffer      = new char[20];
-    const __float128 ymin = ceilq(mult*ymin_)/mult;
-    const __float128 ymax = floorq(mult*ymax_)/mult;
-    const auto   toYCoord = [ymax_,y_to_px](const __float128 y)->int {
-        return (ymax_-y)*y_to_px;
+    char* chr_buffer  = new char[20];
+    const double ymin = std::ceil(mult*yplot_min)/mult;
+    const double ymax = std::floor(mult*yplot_max)/mult;
+    const auto   toYCoord = [yplot_max,dy_to_px](const double y)->int {
+        return (yplot_max-y)*dy_to_px;
     };
-    __float128 y    = ymin;
+    double y        = ymin;
     int label_count = 0;
     do {
         if (y == 0.0) {
             sprintf(chr_buffer,"0\n");
         } else {
-            const __float128 exp = log10q(fabsq(y));
+            const double exp = std::log10(std::abs(y));
             if (exp < num_digits && exp >= 0.0) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(floorq(exp))-1)+"f\n").c_str(),static_cast<double>(y));
+                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(std::floor(exp))-1)+"f\n").c_str(),static_cast<double>(y));
             } else if (exp < 0.0 && exp >= num_digits-1) {
                 sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"f\n").c_str(),static_cast<double>(y));
             } else {
