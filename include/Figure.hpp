@@ -65,7 +65,7 @@ QString                                                           fig_name_;
 int                                                               current_render_area_idx_;
 vector<RenderArea*>                                               render_areas_;
 vector<LimitsInfo>                                                limits_info_;
-vector<vector<tuple<uint,vec_ptr,mat_ptr,QPen>>>                  line_data_;
+vector<vector<tuple<uint,vec_ptr,mat_ptr,Style>>>                 line_data_;
 vector<vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>> arrow_data_;
 
 };

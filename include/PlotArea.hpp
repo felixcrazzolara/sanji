@@ -33,7 +33,7 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
+explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,Style>>*                 line_data,
                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
                   LimitsInfo*                                                      limits_info);
 
@@ -51,7 +51,7 @@ private:
 
 QColor                                                           background_color_;
 
-const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data_;
+const vector<tuple<uint,vec_ptr,mat_ptr,Style>>*                 line_data_;
 const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data_;
 LimitsInfo*                                                      limits_info_;
 

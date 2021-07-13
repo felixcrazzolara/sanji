@@ -3,9 +3,9 @@ project(simulation_project)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 
-#set(CMAKE_CXX_FLAGS "-O2")
+set(CMAKE_CXX_FLAGS "-O2")
 
 set(Qt5Core_DIR "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5Core")
 set(Qt5_DIR     "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5")
@@ -38,40 +38,25 @@ add_library(sanji SHARED
     src/PlotUI.cpp
 )
 
-add_executable(SimpleLinePlot
-    examples/SimpleLinePlot.cpp
-)
+macro(add_example _target)
+    add_executable(${_target}
+        examples/${_target}.cpp
+    )
+    target_link_libraries(${_target}
+        PRIVATE sanji
+    )
+endmacro()
 
-add_executable(Quiver
-    examples/Quiver.cpp
-)
-
-add_executable(HeatQuiver
-    examples/HeatQuiver.cpp
-)
+add_example(SimpleLinePlot)
+add_example(Quiver)
+add_example(HeatQuiver)
+add_example(DotPlot)
 
 target_include_directories(sanji
     PUBLIC include
 )
 
-target_link_libraries(SimpleLinePlot
-    PRIVATE sanji
-)
-
-target_link_libraries(Quiver
-    PRIVATE sanji
-)
-
-target_link_libraries(HeatQuiver
-    PRIVATE sanji
-)
-
-target_link_directories(sanji
-    PRIVATE ${quadmath_path}
-)
-
 target_link_libraries(sanji
     PUBLIC  Eigen3::Eigen
     PUBLIC  Qt5::Widgets
-    PRIVATE quadmath
 )

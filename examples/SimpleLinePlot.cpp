@@ -9,7 +9,7 @@ using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
 
 int main(int argc, char* argv[]) {
-    // Initialize this as a QT application
+    // Initialize this as a Qt application
     QApplication app(argc, argv);
     sanji::init();
 

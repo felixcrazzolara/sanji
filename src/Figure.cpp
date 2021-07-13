@@ -59,18 +59,6 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
         abort();
     }
 
-    // Configure the pen
-    uint32_t color;
-    if (style.find("color") == style.end()) color = BLACK;
-    else                                    color = style.at("color");
-    QPen pen(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff));
-    if (style.find("line_style") == style.end()) pen.setStyle(Qt::SolidLine);
-    else {
-        if (style.at("line_style") == '-')      pen.setStyle(Qt::SolidLine);
-        else if (style.at("line_style") == '.') pen.setStyle(Qt::DotLine);
-        else throw new std::runtime_error("'"+std::to_string((char) style.at("line_style"))+"' is not a valid 'line_style'.");
-    }
-
     // Make sure that a render area is available
     checkRenderArea();
 
@@ -136,11 +124,11 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
     *y_cpy              = y;
 
     // Store the data
-    line_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,pen);
+    line_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,style);
 
     // Sort the data
     struct {
-        bool operator()(const tuple<uint,vec_ptr,mat_ptr,QPen>& a, const tuple<uint,vec_ptr,mat_ptr,QPen>& b) const {
+        bool operator()(const tuple<uint,vec_ptr,mat_ptr,Style>& a, const tuple<uint,vec_ptr,mat_ptr,Style>& b) const {
             return std::get<0>(a) < std::get<0>(b);
         }
     } custom_less;

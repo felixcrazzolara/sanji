@@ -4,8 +4,7 @@
 #include "PlotArea.hpp"
 #include "Figure.hpp"
 #include "Colors.hpp"
-
-#include <iostream> // TODO: Remove this later
+#include <iostream>
 
 namespace sanji_ {
 
@@ -16,7 +15,7 @@ using namespace std::complex_literals;
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,QPen>>*                  line_data,
+PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,Style>>*                 line_data,
                    const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
                    LimitsInfo*                                                      limits_info) :
     background_color_{255,255,255},
@@ -48,19 +47,49 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     // Plot the line data
     for (const auto& line_data : *line_data_) {
         // Extract variables for convenience
-        const VectorXd& x = *std::get<1>(line_data);
-        const MatrixXd& y = *std::get<2>(line_data);
+        const VectorXd& x     = *std::get<1>(line_data);
+        const MatrixXd& y     = *std::get<2>(line_data);
+        const Style&    style =  std::get<3>(line_data);
 
-        // Configure the painter
-        painter.setPen(std::get<3>(line_data));
+        // Configure the painting color
+        uint32_t color;
+        if (style.find("color") == style.end()) color = BLACK;
+        else                                    color = style.at("color");
 
-        // Draw the data
-        if (x.rows() == 1) {
-            std::cout << "This is currently not implemented (from RenderArea::paintEvent)" << std::endl; // TODO: Implement this
-        } else
-            for (uint i = 0; i < x.rows()-1; ++i)
-                for (uint j = 0; j < y.cols(); ++j)
-                    painter.drawLine(toQPoint(x(i),y(i,j)),toQPoint(x(i+1),y(i+1,j)));
+        if (style.find("line_style") != style.end() && style.at("line_style") == 'o') {
+            // Configure the painter
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
+
+            // Draw the data
+            if (x.rows() == 1) {
+                std::cout << "This is currently not implemented (from RenderArea::paintEvent)" << std::endl; // TODO: Implement this
+            } else
+                for (uint i = 0; i < x.rows(); ++i)
+                    for (uint j = 0; j < y.cols(); ++j)
+                        painter.drawEllipse(toQPoint(x(i),y(i,j)),4,4);
+        } else {
+            // Configure the pen
+            QPen pen(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff));
+            if (style.find("line_style") == style.end()) pen.setStyle(Qt::SolidLine);
+            else {
+                if (style.at("line_style") == '-')      pen.setStyle(Qt::SolidLine);
+                else if (style.at("line_style") == '.') pen.setStyle(Qt::DotLine);
+                else {
+                    std::cout << "'"+std::to_string((char) style.at("line_style"))+"' is not a valid 'line_style'." << std::endl;
+                    abort();
+                }
+            }
+            painter.setPen(pen);
+
+            // Draw the data
+            if (x.rows() == 1) {
+                std::cout << "This is currently not implemented (from RenderArea::paintEvent)" << std::endl; // TODO: Implement this
+            } else
+                for (uint i = 0; i < x.rows()-1; ++i)
+                    for (uint j = 0; j < y.cols(); ++j)
+                        painter.drawLine(toQPoint(x(i),y(i,j)),toQPoint(x(i+1),y(i+1,j)));
+        }
     }
 
     /* Plot the arrow data */
