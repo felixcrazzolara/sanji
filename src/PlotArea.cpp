@@ -15,9 +15,11 @@ using namespace std::complex_literals;
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,Style>>*                 line_data,
-                   const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
-                   LimitsInfo*                                                      limits_info) :
+PlotArea::PlotArea(const LineData*   line_data,
+                   const ArrowData*  arrow_data,
+                         LimitsInfo* limits_info,
+                         QWidget*    parent) :
+    QWidget(parent),
     background_color_{255,255,255},
     line_data_(line_data),
     arrow_data_(arrow_data),

@@ -19,7 +19,7 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit TicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area);
+explicit TicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent);
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);

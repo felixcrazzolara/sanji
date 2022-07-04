@@ -24,7 +24,10 @@ using vec_ptr    = shared_ptr<VectorXd>;
 using mat_ptr    = shared_ptr<MatrixXd>;
 template <class... Types>
 using tuple      = std::tuple<Types...>;
-using Style      = std::unordered_map<std::string,double>;
+
+using Style     = std::unordered_map<std::string,double>;
+using LineData  = vector<tuple<uint,vec_ptr,mat_ptr,Style>>;
+using ArrowData = vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>;
 
 class PlotArea : public QWidget {
 
@@ -33,9 +36,10 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit PlotArea(const vector<tuple<uint,vec_ptr,mat_ptr,Style>>*                 line_data,
-                  const vector<tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>>* arrow_data,
-                  LimitsInfo*                                                      limits_info);
+explicit PlotArea(const LineData*   line_data,
+                  const ArrowData*  arrow_data,
+                        LimitsInfo* limits_info,
+                        QWidget*    parent);
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);

@@ -21,7 +21,7 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit PlotUI(LimitsInfo* limits_info);
+explicit PlotUI(LimitsInfo* limits_info, QWidget* parent);
 
 protected:
 

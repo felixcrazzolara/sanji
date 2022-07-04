@@ -7,14 +7,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "-O2")
 
-set(Qt5Core_DIR "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5Core")
-set(Qt5_DIR     "/home/felix/scientific-software/Qt/5.15.2/gcc_64/lib/cmake/Qt5")
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 5.15.2 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -58,5 +55,5 @@ target_include_directories(sanji
 
 target_link_libraries(sanji
     PUBLIC  Eigen3::Eigen
-    PUBLIC  Qt5::Widgets
+    PUBLIC  Qt6::Widgets
 )

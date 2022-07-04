@@ -6,7 +6,8 @@
 
 namespace sanji_ {
 
-PlotUI::PlotUI(LimitsInfo* limits_info) :
+PlotUI::PlotUI(LimitsInfo* limits_info, QWidget* parent) :
+    QWidget(parent),
     background_color_{255,255,255},
     limits_info_{limits_info}
 {}

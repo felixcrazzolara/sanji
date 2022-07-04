@@ -15,11 +15,10 @@ Q_OBJECT
 public:
 
 /* Constructor and destructor */
-explicit RenderArea(QWidget*    parent,
-                    PlotArea*   plot_area_,
-                    HTicksArea* ticks_area_x,
-                    VTicksArea* ticks_area_y,
-                    PlotUI*     plot_ui);
+explicit RenderArea(const LineData*   line_data,
+                    const ArrowData*  arrow_data,
+                          LimitsInfo& limits_info,
+                          QWidget*    parent);
 ~RenderArea();                    
 
 /* Setter */

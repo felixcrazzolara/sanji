@@ -6,8 +6,8 @@
 
 namespace sanji_ {
 
-VTicksArea::VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area) :
-    TicksArea(limits_info,plot_area)
+VTicksArea::VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent) :
+    TicksArea(limits_info,plot_area,parent)
 {}
 
 void VTicksArea::paintEvent(QPaintEvent* event) {

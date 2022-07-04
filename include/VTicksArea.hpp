@@ -12,7 +12,7 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area);
+explicit VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent);
 
 protected:
 

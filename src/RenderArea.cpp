@@ -4,30 +4,20 @@
 
 namespace sanji_ {
 
-RenderArea::RenderArea(QWidget*    parent,
-                       PlotArea*   plot_area_,
-                       HTicksArea* ticks_area_x,
-                       VTicksArea* ticks_area_y,
-                       PlotUI*     plot_ui) :
+RenderArea::RenderArea(const LineData*   line_data,
+                       const ArrowData*  arrow_data,
+                             LimitsInfo& limits_info,
+                             QWidget*    parent) :
     QWidget(parent),
-    plot_area_(plot_area_),
-    tick_area_x_(ticks_area_x),
-    tick_area_y_(ticks_area_y),
-    plot_ui_(plot_ui)
+    plot_area_(new PlotArea(line_data, arrow_data, &limits_info, this)),
+    tick_area_x_(new HTicksArea(&limits_info, plot_area_, this)),
+    tick_area_y_(new VTicksArea(&limits_info, plot_area_, this)),
+    plot_ui_(new PlotUI(&limits_info, this))
 {
-    plot_area_->setParent(this);
-    tick_area_x_->setParent(this);
-    tick_area_y_->setParent(this);
-    plot_ui_->setParent(this);
     this->show();
 }
 
-RenderArea::~RenderArea() {
-    delete plot_area_;
-    delete tick_area_x_;
-    delete tick_area_y_;
-    delete plot_ui_;
-}
+RenderArea::~RenderArea() {}
 
 void RenderArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);

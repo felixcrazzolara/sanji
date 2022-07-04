@@ -7,8 +7,8 @@
 
 namespace sanji_ {
 
-HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area) :
-    TicksArea(limits_info,plot_area)
+HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent) :
+    TicksArea(limits_info,plot_area,parent)
 {}
 
 void HTicksArea::paintEvent(QPaintEvent* event) {
