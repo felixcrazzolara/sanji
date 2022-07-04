@@ -18,8 +18,7 @@ public:
 explicit RenderArea(const LineData*   line_data,
                     const ArrowData*  arrow_data,
                           LimitsInfo& limits_info,
-                          QWidget*    parent);
-~RenderArea();                    
+                          QWidget*    parent = nullptr);
 
 /* Setter */
 void setPlotBackgroundColor(const uint32_t color);

@@ -11,6 +11,8 @@ namespace sanji_ {
 template <class... Types>
 using tuple = std::tuple<Types...>;
 
+using ScalingsAndLimits = tuple<double,double,double,double,double,double>;
+
 struct AxesLimits {
 
 double xmin;
@@ -41,7 +43,7 @@ LimitsInfo() : xmin_value{ std::numeric_limits<double>::max()},
     axes_limits_hist.resize(1);
 }
 
-tuple<double,double,double,double,double,double> getScalingsAndLimits(const double plot_width_px, const double plot_height_px) const {
+ScalingsAndLimits getScalingsAndLimits(const double plot_width_px, const double plot_height_px) const {
     // Define some variables for convenience
     const bool   x_both_set = xmin_set && xmax_set;
     const bool   y_both_set = ymin_set && ymax_set;

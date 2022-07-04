@@ -17,8 +17,6 @@ RenderArea::RenderArea(const LineData*   line_data,
     this->show();
 }
 
-RenderArea::~RenderArea() {}
-
 void RenderArea::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
 
