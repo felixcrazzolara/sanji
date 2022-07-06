@@ -128,8 +128,8 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
 
     // Sort the data
     struct {
-        bool operator()(const tuple<uint,vec_ptr,mat_ptr,Style>& a, const tuple<uint,vec_ptr,mat_ptr,Style>& b) const {
-            return std::get<0>(a) < std::get<0>(b);
+        bool operator()(const LineData& a, const LineData& b) const {
+            return a.priority < b.priority;
         }
     } custom_less;
     std::sort(line_data_[current_render_area_idx_].begin(),line_data_[current_render_area_idx_].end(),custom_less);
@@ -233,8 +233,8 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
 
     // Sort the data
     struct {
-        bool operator()(const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>& a, const tuple<uint,vec_ptr,vec_ptr,vec_ptr,vec_ptr,Style>& b) const {
-            return std::get<0>(a) < std::get<0>(b);
+        bool operator()(const ArrowData& a, const ArrowData& b) const {
+            return a.priority < b.priority;
         }
     } custom_less;
     std::sort(arrow_data_[current_render_area_idx_].begin(),arrow_data_[current_render_area_idx_].end(),custom_less);

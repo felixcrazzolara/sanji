@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
 #include "VTicksArea.hpp"
@@ -15,10 +16,10 @@ Q_OBJECT
 public:
 
 /* Constructor and destructor */
-explicit RenderArea(const LineData*   line_data,
-                    const ArrowData*  arrow_data,
-                          LimitsInfo& limits_info,
-                          QWidget*    parent = nullptr);
+explicit RenderArea(const vector<LineData>*  line_data,
+                    const vector<ArrowData>* arrow_data,
+                          LimitsInfo&        limits_info,
+                          QWidget*           parent = nullptr);
 
 /* Setter */
 void setPlotBackgroundColor(const uint32_t color);

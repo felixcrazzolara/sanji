@@ -15,10 +15,10 @@ using namespace std::complex_literals;
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const LineData*   line_data,
-                   const ArrowData*  arrow_data,
-                         LimitsInfo* limits_info,
-                         QWidget*    parent) :
+PlotArea::PlotArea(const vector<LineData>*  line_data,
+                   const vector<ArrowData>* arrow_data,
+                         LimitsInfo*        limits_info,
+                         QWidget*           parent) :
     QWidget(parent),
     background_color_{255,255,255},
     line_data_(line_data),
@@ -49,9 +49,9 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     // Plot the line data
     for (const auto& line_data : *line_data_) {
         // Extract variables for convenience
-        const VectorXd& x     = *std::get<1>(line_data);
-        const MatrixXd& y     = *std::get<2>(line_data);
-        const Style&    style =  std::get<3>(line_data);
+        const VectorXd& x     = *line_data.x;
+        const MatrixXd& y     = *line_data.y;
+        const Style&    style =  line_data.style;
 
         // Configure the painting color
         uint32_t color;
@@ -113,11 +113,11 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     // Iterate through the data
     for (const auto& arrow_data : *arrow_data_) {
         // Extract the variables for convenience
-        const VectorXd& x     = *std::get<1>(arrow_data);
-        const VectorXd& y     = *std::get<2>(arrow_data);
-        const VectorXd& u     = *std::get<3>(arrow_data);
-        const VectorXd& v     = *std::get<4>(arrow_data);
-        const Style&    style =  std::get<5>(arrow_data);
+        const VectorXd& x     = *arrow_data.x;
+        const VectorXd& y     = *arrow_data.y;
+        const VectorXd& u     = *arrow_data.u;
+        const VectorXd& v     = *arrow_data.v;
+        const Style&    style =  arrow_data.style;
 
         /* Configure the brush */
         bool use_colormap          = false;
