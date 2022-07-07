@@ -1,19 +1,30 @@
+/* 
+ * Author: Felix Crazzolara
+ */ 
 #pragma once
 
-#include <vector>
 #include <limits>
-#include <tuple>
 #include <cmath>
+
+#include <types.hpp>
 
 namespace sanji_ {
 
 /* Type definitions */
-template <class... Types>
-using tuple = std::tuple<Types...>;
 
 using ScalingsAndLimits = tuple<double,double,double,double,double,double>;
 
 struct AxesLimits {
+
+AxesLimits() : xmin{ std::numeric_limits<double>::max()},
+               xmax{-std::numeric_limits<double>::max()},
+               ymin{ std::numeric_limits<double>::max()},
+               ymax{-std::numeric_limits<double>::max()}
+{}
+
+AxesLimits(const double xmin, const double xmax, const double ymin, const double ymax) :
+    xmin{xmin},xmax{xmax},ymin{ymin},ymax{ymax}
+{}
 
 double xmin;
 double xmax;
@@ -32,7 +43,6 @@ LimitsInfo() : xmin_value{ std::numeric_limits<double>::max()},
                xmax_value{-std::numeric_limits<double>::max()},
                ymin_value{ std::numeric_limits<double>::max()},
                ymax_value{-std::numeric_limits<double>::max()},
-               value_init{false},
                xmin_set{false},
                xmax_set{false},
                ymin_set{false},
@@ -110,6 +120,28 @@ ScalingsAndLimits getScalingsAndLimits(const double plot_width_px, const double 
     return {xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px};
 }
 
+void update_limits(const VectorXd& x, const MatrixXd& y) {
+    // Determine the min/max values
+    const double xmin = x.minCoeff();
+    const double xmax = x.maxCoeff();
+    const double ymin = y.minCoeff();
+    const double ymax = y.maxCoeff();
+
+    // Update axis limits which are not fixed
+    if (!xmin_set && xmin < this->xmin()) {
+        set_xmin(xmin - 0.025*(xmax-xmin));
+    }
+    if (!xmax_set && xmax > this->xmax()) {
+        set_xmax(xmax + 0.025*(xmax-xmin));
+    }
+    if (!ymin_set && ymin < this->ymin()) {
+        set_ymin(ymin - 0.025*(ymax-ymin));
+    }
+    if (!ymax_set && ymax > this->ymax()) {
+        set_ymax(ymax + 0.025*(ymax-ymin));
+    }
+}
+
 double xmin() const { return axes_limits_hist[hist_idx].xmin; }
 double xmax() const { return axes_limits_hist[hist_idx].xmax; }
 double ymin() const { return axes_limits_hist[hist_idx].ymin; }
@@ -150,8 +182,6 @@ double     xmax_value;
 double     ymin_value;
 double     ymax_value;
 
-bool       value_init;
-
 bool       xmin_set;
 bool       xmax_set;
 bool       ymin_set;
@@ -161,8 +191,8 @@ AXES_RATIO axes_ratio;
 
 private:
 
-std::vector<AxesLimits> axes_limits_hist;
-uint                    hist_idx;
+vector<AxesLimits> axes_limits_hist;
+uint               hist_idx;
 
 };
 

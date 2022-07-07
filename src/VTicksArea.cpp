@@ -8,19 +8,40 @@
 
 namespace sanji_ {
 
+// TODO: Implement this differently
+static constexpr uint FONT_SIZE = 10;
+static constexpr uint X_MARGIN  = 2;
+static constexpr uint Y_MARGIN  = 2;
+
 VTicksArea::VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent) :
     TicksArea(limits_info,plot_area,parent),
     last_width_(-1)
 {}
 
 uint VTicksArea::getXMargin() const {
-    return 1;
+    return X_MARGIN;
+}
+
+uint VTicksArea::getYMargin() const {
+    return Y_MARGIN;
+}
+
+uint VTicksArea::getMinHeight() const {
+    return QFontMetrics(QFont("Monospace",FONT_SIZE)).height() + 2*getYMargin();
+}
+
+void VTicksArea::setSizeHint(const QSize& size_hint) {
+    size_hint_ = size_hint;
+}
+
+QSize VTicksArea::sizeHint() const {
+    return size_hint_;
 }
 
 void VTicksArea::paintEvent(QPaintEvent* event) {
     // Miscellaneous
     QPainter     painter(this);
-    QFontMetrics fm(QFont("Monospace",10));
+    QFontMetrics fm(QFont("Monospace",FONT_SIZE));
 
     // Fetch the geometry of the this widget
     const QRect geom = geometry();
@@ -35,7 +56,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
     // Draw a thin vertical line first
     painter.setPen(QPen(QColor(171,171,171)));
-    painter.drawLine(geom.width()-(tick_width+1)/2,0,geom.width()-(tick_width+1)/2,geom.height());
+    painter.drawLine(geom.width()-(tick_width+1)/2,0,geom.width()-(tick_width+1)/2,geom.height()-1);
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
@@ -53,15 +74,16 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     // dense.
     else {
         // Determine the minimum number of pixels per tick
-        const uint min_pixel_per_tick = fm.boundingRect(QString("0")).height();
+        const uint min_pixel_per_tick = fm.height();
 
         // Minimize num_pixel_per_tick just below num_pixel_per_tick
         int num_pixel_per_tick = -1;
         const double mult_mult = 2.0;
         double mult10          = 1.0;
         do {
-            const int ymin     = std::ceil(mult*mult10*yplot_min);
-            const int ymax     = std::floor(mult*mult10*yplot_max);
+            const int ymin = std::ceil(mult*mult10*yplot_min);
+            const int ymax = std::floor(mult*mult10*yplot_max);
+
             if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
             mult              *= mult_mult;
             if (mult >= 10.0) {
@@ -72,6 +94,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
         mult = mult*mult10;
 
         //--> At this point it holds that num_pixel_per_tick < min_pixel_per_tick
+        assert(num_pixel_per_tick < min_pixel_per_tick);
 
         // Decrease mult until 
         while (num_pixel_per_tick < min_pixel_per_tick) {
@@ -82,6 +105,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
         }
 
         //--> At this point it holds that num_pixel_per_tick >= min_pixel_per_tick
+        assert(num_pixel_per_tick >= min_pixel_per_tick);
     }
 
     /* Plot the ticks */
@@ -90,14 +114,19 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     char* chr_buffer  = new char[20];
 
     // Determine the values of the bottommost and the topmost tick
-    const double ymin = std::ceil(mult*yplot_min)/mult;
-    const double ymax = std::floor(mult*yplot_max)/mult;
+    double ymin, ymax;
+    if (yplot_min == yplot_max) {
+        ymin = ymax = yplot_min;
+    } else {
+        ymin = std::ceil(mult*yplot_min)/mult;
+        ymax = std::floor(mult*yplot_max)/mult;
+    }
 
     // Create a lambda to convert x-axis values to horizontal pixel coordinates
-    const auto toYCoord = [yplot_min,yplot_max,dy_to_px,y_mid=plot_geom.height()](const double y)->int {
+    const auto toYCoord = [yplot_min,yplot_max,dy_to_px,y_mid=plot_geom.height()/2](const double y)->int {
         if (yplot_min == yplot_max) {
             assert(y == yplot_min);
-            return y_mid / 2;
+            return y_mid;
         } else {
             return (yplot_max-y)*dy_to_px;
         }
@@ -115,7 +144,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
         const int   label_height = label_geom.height();
 
         // Draw the horizontal tick line
-        const int   ycoord       = toYCoord(y);
+        const int ycoord = toYCoord(y);
         painter.drawLine(geom.width()-tick_width,ycoord,geom.width()-1,ycoord);
 
         // Draw the tick label
@@ -125,13 +154,14 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
                 // Check if an old tick label can be reused or if a new one must be created
                 if (tick_labels_.size() <= label_count) {
                     tick_labels_.push_back(new QLabel(this));
-                    tick_labels_.back()->setFont(QFont("Monospace",10));
+                    tick_labels_.back()->setFont(QFont("Monospace",FONT_SIZE));
                 }
 
                 // Configure the label
                 tick_labels_[label_count]->setText(QString(chr_buffer));
-                tick_labels_[label_count]->setGeometry(0,ycoord-(label_height-2)/2,
-                                                       label_geom.width(),label_height);
+                tick_labels_[label_count]->setAlignment(Qt::AlignHCenter);
+                tick_labels_[label_count]->setGeometry(X_MARGIN,ycoord-(label_height-2)/2,
+                                                       label_geom.width()+X_MARGIN,label_height);
                 tick_labels_[label_count++]->show();
             }
         } else {
@@ -140,13 +170,14 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
                 // Check if an old tick label can be reused or if a new one must be created
                 if (tick_labels_.size() <= label_count) {
                     tick_labels_.push_back(new QLabel(this));
-                    tick_labels_.back()->setFont(QFont("Monospace",10));
+                    tick_labels_.back()->setFont(QFont("Monospace",FONT_SIZE));
                 }
 
                 // Configure the label
                 tick_labels_[label_count]->setText(QString(chr_buffer));
-                tick_labels_[label_count]->setGeometry(0,ycoord-(label_height-1)/2,
-                                                       label_geom.width(),label_height);
+                tick_labels_[label_count]->setAlignment(Qt::AlignHCenter);
+                tick_labels_[label_count]->setGeometry(X_MARGIN,ycoord-(label_height-1)/2,
+                                                       label_geom.width()+X_MARGIN,label_height);
                 tick_labels_[label_count++]->show();
             }
         }
@@ -169,7 +200,7 @@ void VTicksArea::resizeEvent(QResizeEvent* event) {}
 
 uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_area_height) {
     // Miscellaneous
-    QFontMetrics fm(QFont("Monospace",10));
+    QFontMetrics fm(QFont("Monospace",FONT_SIZE));
 
     // Determine the axis limits
     const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] =
@@ -186,15 +217,16 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
     // dense.
     else {
         // Determine the minimum number of pixels per tick
-        const uint min_pixel_per_tick = fm.boundingRect(QString("0")).height();
+        const uint min_pixel_per_tick = fm.height();
 
         // Minimize num_pixel_per_tick just below num_pixel_per_tick
         int num_pixel_per_tick = -1;
         const double mult_mult = 2.0;
         double mult10          = 1.0;
         do {
-            const int ymin     = std::ceil(mult*mult10*yplot_min);
-            const int ymax     = std::floor(mult*mult10*yplot_max);
+            const int ymin = std::ceil(mult*mult10*yplot_min);
+            const int ymax = std::floor(mult*mult10*yplot_max);
+
             // The y-tick area has the same height as the plot area
             if (ymax-ymin+1 != 0) num_pixel_per_tick = plot_area_height / (ymax-ymin+1);
             mult              *= mult_mult;
@@ -206,6 +238,7 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
         mult = mult*mult10;
 
         //--> At this point it holds that num_pixel_per_tick < min_pixel_per_tick
+        assert(num_pixel_per_tick < min_pixel_per_tick);
 
         // Decrease mult until 
         while (num_pixel_per_tick < min_pixel_per_tick) {
@@ -217,6 +250,7 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
         }
 
         //--> At this point it holds that num_pixel_per_tick >= min_pixel_per_tick
+        assert(num_pixel_per_tick >= min_pixel_per_tick);
     }
 
     // Determine the values of the bottommost and the topmost tick
@@ -224,15 +258,15 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
     const double ymax = std::floor(mult*yplot_max)/mult;
 
     // Iterate through the y-axis values at the tick positions
-    char*  chr_buffer      = new char[20];
-    int    max_label_width = 0;
-    double y               = ymin;
+    char*  chr_buffer     = new char[20];
+    int    max_text_width = 0;
+    double y              = ymin;
     do {
         // Convert the y-axis value to a string
         getLabel(chr_buffer,y);
 
-        // Update the maximum label width
-        max_label_width = std::max(max_label_width,fm.boundingRect(QString(chr_buffer)).width());
+        // Update the maximum text width
+        max_text_width = std::max(max_text_width,fm.boundingRect(QString(chr_buffer)).width());
 
         // Step to the next y-axis value considered
         y = (y*mult + 1)/mult;
@@ -241,7 +275,7 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
     // Free memory
     delete[] chr_buffer;
 
-    return max_label_width;
+    return max_text_width + 2*getXMargin();
 }
 
 void VTicksArea::getLabel(char* chr_buffer, const double y) const {

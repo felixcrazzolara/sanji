@@ -2,12 +2,15 @@
 
 #include <QWidget>
 #include <QPen>
+
+#include <Eigen/Dense>
+
 #include <memory>
 #include <vector>
 #include <tuple>
 #include <string>
 #include <unordered_map>
-#include <Eigen/Dense>
+
 #include "RenderArea.hpp"
 #include "Colors.hpp"
 #include "LimitsInfo.hpp"
@@ -59,6 +62,7 @@ private:
 
 friend RenderArea;
 
+void checkLimitsAndPlotDataInfo();
 void checkRenderArea();
 
 QString                   fig_name_;

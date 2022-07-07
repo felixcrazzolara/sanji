@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include "Sanji.hpp"
 #include "Colors.hpp"
 
@@ -28,6 +29,15 @@ int main(int argc, char* argv[]) {
     sanji::figure("Simple data");
     sanji::plot(x,y1,{{"line_style",'-'},{"color",RED}},10);
     sanji::plot(x,y2,{{"line_style",'-'},{"color",BLUE}},2);
+
+    sanji::figure("Other data");
+    VectorXd x_(2);
+    x_ << 0, 6;
+    VectorXd y_(2);
+    y_ << -2, -2;
+    sanji::plot(x_,y_);
+    y_ << -2.2, -2.2;
+    sanji::plot(x_,y_);
 
     // Execute the application
     app.exec();

@@ -9,13 +9,29 @@
 
 namespace sanji_ {
 
+static constexpr uint FONT_SIZE   = 10;
+static constexpr uint TICK_HEIGHT = 11;
+static constexpr uint Y_MARGIN    = 2;
+
 HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent) :
     TicksArea(limits_info,plot_area,parent)
 {}
 
+uint HTicksArea::getHeight() const {
+    return QFontMetrics(QFont("Monospace",FONT_SIZE)).height() + 2*Y_MARGIN + TICK_HEIGHT;
+}
+
+void HTicksArea::setSizeHint(const QSize& size_hint) {
+    size_hint_ = size_hint;
+}
+
+QSize HTicksArea::sizeHint() const {
+    return size_hint_;
+}
+
 void HTicksArea::paintEvent(QPaintEvent* event) {
     // Miscellaneous
-    QFontMetrics fm(QFont("Monospace",10));
+    QFontMetrics fm(QFont("Monospace",FONT_SIZE));
     QPainter     painter(this);
 
     // Fetch the geometry of the this widget
@@ -27,12 +43,11 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     painter.drawRect(0,0,geom.width(),geom.height());
 
     // TODO: Put these settings somewhere else
-    const uint tick_height = 11;
     const uint num_digits_after_comma = 5;
 
     // Draw a thin horizontal line first
     painter.setPen(QPen(QColor(171,171,171)));
-    painter.drawLine(0,(tick_height-1)/2,geom.width(),(tick_height-1)/2);
+    painter.drawLine(0,(TICK_HEIGHT-1)/2,geom.width()-1,(TICK_HEIGHT-1)/2);
 
     // Determine the axis limits
     const QRect plot_geom = plot_area_->geometry();
@@ -79,6 +94,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         mult = mult*mult10;
 
         //--> At this point it holds that num_pixel_per_tick < min_pixel_per_tick
+        assert(num_pixel_per_tick < min_pixel_per_tick);
 
         // Decrease mult until num_pixel_per_tick >= min_pixel_per_tick
         while (num_pixel_per_tick < min_pixel_per_tick) {
@@ -89,6 +105,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         }
 
         //--> At this point it holds that num_pixel_per_tick >= min_pixel_per_tick
+        assert(num_pixel_per_tick >= min_pixel_per_tick);
     }
 
     /* Plot the ticks */
@@ -97,14 +114,19 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     char* chr_buffer = new char[20];
 
     // Determine the values of the leftmost and the rightmost tick
-    const double xmin = std::ceil(mult*xplot_min)/mult;
-    const double xmax = std::floor(mult*xplot_max)/mult;
+    double xmin, xmax;
+    if (xplot_min == xplot_max) {
+        xmin = xmax = xplot_min;
+    } else {
+        xmin = std::ceil(mult*xplot_min)/mult;
+        xmax = std::floor(mult*xplot_max)/mult;
+    }
 
     // Create a lambda to convert x-axis values to horizontal pixel coordinates
-    const auto toXCoord = [xplot_min,xplot_max,dx_to_px,x_mid=plot_geom.width()](const double x)->int {
+    const auto toXCoord = [xplot_min,xplot_max,dx_to_px,x_mid=plot_geom.width()/2](const double x)->int {
         if (xplot_min == xplot_max) {
             assert(x == xplot_min);
-            return x_mid / 2;
+            return x_mid;
         } else {
             return (x-xplot_min)*dx_to_px;
         }
@@ -130,45 +152,28 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         }
 
         // Determine the width and the height of the tick label
-        const QRect label_geom  = fm.boundingRect(QString(chr_buffer));
-        const int label_width   = label_geom.width();
-        const uint label_height = label_geom.height();
+        const QRect text_geom   = fm.boundingRect(QString(chr_buffer));
+        const int   text_width  = text_geom.width();
+        const uint  text_height = text_geom.height();
 
         // Draw the vertical tick line
         const int xcoord = toXCoord(x);
-        painter.drawLine(xcoord,0,xcoord,tick_height-1);
+        painter.drawLine(xcoord,0,xcoord,TICK_HEIGHT-1);
 
-        // Draw the tick label
-        if (label_width % 2 == 0) {
-            // Draw the label only if there's enough space
-            if (xcoord-(label_width-2)/2 >= 0 && xcoord+(label_width-2)/2 < geom.width()) {
-                // Check if an old tick label can be reused or if a new one must be created
-                if (tick_labels_.size() <= label_count) {
-                    tick_labels_.push_back(new QLabel(this));
-                    tick_labels_.back()->setFont(QFont("Monospace",10));
-                }
-
-                // Configure the label
-                tick_labels_[label_count]->setText(QString(chr_buffer));
-                tick_labels_[label_count]->setGeometry(xcoord-(label_width-2)/2,tick_height+1,
-                                                       label_width,label_height);
-                tick_labels_[label_count++]->show();
+        // Draw the label only if there's enough space
+        if (xcoord-text_width/2 >= 0 && xcoord+text_width/2 < geom.width()) {
+            // Check if an old tick label can be reused or if a new one must be created
+            if (tick_labels_.size() <= label_count) {
+                tick_labels_.push_back(new QLabel(this));
+                tick_labels_.back()->setFont(QFont("Monospace",FONT_SIZE));
             }
-        } else {
-            // Draw the label only if there's enough space
-            if (xcoord-(label_width-1)/2 >= 0 && xcoord+(label_width-1)/2 < geom.width()) {
-                // Check if an old tick label can be reused or if a new one must be created
-                if (tick_labels_.size() <= label_count) {
-                    tick_labels_.push_back(new QLabel(this));
-                    tick_labels_.back()->setFont(QFont("Monospace",10));
-                }
 
-                // Configure the label
-                tick_labels_[label_count]->setText(QString(chr_buffer));
-                tick_labels_[label_count]->setGeometry(xcoord-(label_width-1)/2,tick_height+1,
-                                                       label_width,label_height);
-                tick_labels_[label_count++]->show();
-            }
+            // Configure the label
+            tick_labels_[label_count]->setText(QString(chr_buffer));
+            tick_labels_[label_count]->setAlignment(Qt::AlignHCenter);
+            tick_labels_[label_count]->setGeometry(xcoord-text_width/2,TICK_HEIGHT,
+                                                   text_width,text_height+2*Y_MARGIN);
+            tick_labels_[label_count++]->show();
         }
 
         // Step to the next x-axis value considered

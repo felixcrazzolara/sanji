@@ -16,6 +16,14 @@ explicit VTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QW
 
 /* Getter */
 uint getXMargin() const;
+uint getYMargin() const;
+uint getMinHeight() const;
+
+/* Setter */
+void setSizeHint(const QSize& size_hint);
+
+/* Miscellaneous */
+QSize sizeHint() const override;
 
 protected:
 
@@ -29,9 +37,10 @@ friend class RenderArea;
 
 uint getMaxLabelWidth(const uint plot_area_width, const uint plot_area_height);
 
-int last_width_;
-
 void getLabel(char* chr_buffer, const double y) const;
+
+int   last_width_;
+QSize size_hint_;
 
 };
 

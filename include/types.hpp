@@ -6,6 +6,8 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <tuple>
+#include <vector>
 
 #include <Eigen/Dense>
 
@@ -17,6 +19,10 @@ using shared_ptr    = std::shared_ptr<T>;
 using string        = std::string;
 template <typename K, typename V>
 using unordered_map = std::unordered_map<K,V>;
+template <class... Types>
+using tuple         = std::tuple<Types...>;
+template <typename T>
+using vector        = std::vector<T>;
 
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;

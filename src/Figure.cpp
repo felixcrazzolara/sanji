@@ -1,8 +1,11 @@
+/* 
+ * Author: Felix Crazzolara
+ */ 
 #include <vector>
-#include <stdexcept>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+
 #include "Figure.hpp"
 #include "PlotArea.hpp"
 #include "HTicksArea.hpp"
@@ -59,63 +62,13 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
         abort();
     }
 
-    // Make sure that a render area is available
-    checkRenderArea();
+    // Make sure that a limits info and plot data objects are available
+    checkLimitsAndPlotDataInfo();
 
-    // Determine the min/max values
-    double xmin;
-    double xmax;
-    double ymin;
-    double ymax;
-    for (uint i = 0; i < x.rows(); ++i) {
-        if (i == 0) {
-            xmin = x(i);
-            xmax = x(i);
-        } else {
-            if (x(i) < xmin) xmin = x(i);
-            if (x(i) > xmax) xmax = x(i);
-        }
-        for (uint j = 0; j < y.cols(); ++j) {
-            if (i == 0 && j == 0) {
-                ymin = y(i,j);
-                ymax = y(i,j);
-            } else {
-                if (y(i,j) < ymin) ymin = y(i,j);
-                if (y(i,j) > ymax) ymax = y(i,j);
-            }
-        }
-    }
-    if (!limits_info_[current_render_area_idx_].value_init) {
-        limits_info_[current_render_area_idx_].xmin_value = xmin;
-        limits_info_[current_render_area_idx_].xmax_value = xmax;
-        limits_info_[current_render_area_idx_].ymin_value = ymin;
-        limits_info_[current_render_area_idx_].ymax_value = ymax;
-        limits_info_[current_render_area_idx_].value_init = true;
-    }
-    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin())
-        limits_info_[current_render_area_idx_].set_xmin(xmin - 0.025*(xmax-xmin));
-    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax())
-        limits_info_[current_render_area_idx_].set_xmax(xmax + 0.025*(xmax-xmin));
-    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin())
-        limits_info_[current_render_area_idx_].set_ymin(ymin - 0.025*(ymax-ymin));
-    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax())
-        limits_info_[current_render_area_idx_].set_ymax(ymax + 0.025*(ymax-ymin));
-    if (limits_info_[current_render_area_idx_].xmin() == limits_info_[current_render_area_idx_].xmax())
-        if (limits_info_[current_render_area_idx_].xmin() == 0) {
-            limits_info_[current_render_area_idx_].set_xmin(-1.0-1e-3);
-            limits_info_[current_render_area_idx_].set_xmax( 1.0+1e-3);
-        } else {
-            limits_info_[current_render_area_idx_].set_xmin(0.9*limits_info_[current_render_area_idx_].xmin());
-            limits_info_[current_render_area_idx_].set_xmax(1.1*limits_info_[current_render_area_idx_].xmax());
-        }
-    if (limits_info_[current_render_area_idx_].ymin() == limits_info_[current_render_area_idx_].ymax())
-        if (limits_info_[current_render_area_idx_].ymin() == 0) {
-            limits_info_[current_render_area_idx_].set_ymin(-1.0-1e-3);
-            limits_info_[current_render_area_idx_].set_ymax( 1.0+1e-3);
-        } else {
-            limits_info_[current_render_area_idx_].set_ymin(0.9*limits_info_[current_render_area_idx_].ymin());
-            limits_info_[current_render_area_idx_].set_ymax(1.1*limits_info_[current_render_area_idx_].ymax());
-        }
+    // Make sure that a render area is available
+
+    // Update the limits
+    limits_info_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].update_limits(x, y);
 
     // Copy the data
     const vec_ptr x_cpy = std::make_shared<VectorXd>();
@@ -124,7 +77,8 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
     *y_cpy              = y;
 
     // Store the data
-    line_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,style);
+    line_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].emplace_back(
+        priority,x_cpy,y_cpy,style);
 
     // Sort the data
     struct {
@@ -132,7 +86,13 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
             return a.priority < b.priority;
         }
     } custom_less;
-    std::sort(line_data_[current_render_area_idx_].begin(),line_data_[current_render_area_idx_].end(),custom_less);
+    {
+        auto& line_data = line_data_[current_render_area_idx_== -1 ? 0 : current_render_area_idx_];
+        std::sort(line_data.begin(),line_data.end(),custom_less);
+    };
+
+    // Make sure that a render area is available
+    checkRenderArea();
 }
 
 void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority) {
@@ -141,14 +101,17 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     if (x.rows() != u.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != u.rows()");
     if (x.rows() != v.rows()) throw new std::runtime_error("Figure::quiver: x.rows() != v.rows()");
 
-    // Make sure that a render area is available
-    checkRenderArea();
+    // Make sure that a limits info and plot data objects are available
+    checkLimitsAndPlotDataInfo();
 
     // Check if a colormap shall be used
     bool use_colormap = false;
     double arrow_length = -1.0;
     if (style.find("use_colormap") != style.end()) {
-        if (style.find("arrow_length") == style.end()) throw new std::runtime_error("Must provided argument 'arrow_length' when using the option 'use_colormap' for 'quiver'.");
+        if (style.find("arrow_length") == style.end()) {
+            throw new std::runtime_error("Must provided argument 'arrow_length' when using the option "
+                                         "'use_colormap' for 'quiver'.");
+        }
         use_colormap = true;
         arrow_length = style.at("arrow_length");
     } else {
@@ -161,7 +124,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     double xmax;
     double ymin;
     double ymax;
-    for (uint i = 0; i < x.rows(); ++i) {
+    for (size_t i = 0; i < x.rows(); ++i) {
         double u_,v_;
         if (use_colormap || arrow_length > 0.0) {
             const double phi = std::atan2(v(i),u(i));
@@ -184,39 +147,26 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
             if (y(i) + v_ > ymax) ymax = y(i) + v_;
         }
     }
-    if (!limits_info_[current_render_area_idx_].value_init) {
-        limits_info_[current_render_area_idx_].xmin_value = xmin;
-        limits_info_[current_render_area_idx_].xmax_value = xmax;
-        limits_info_[current_render_area_idx_].ymin_value = ymin;
-        limits_info_[current_render_area_idx_].ymax_value = ymax;
-        limits_info_[current_render_area_idx_].value_init = true;
-    }
 
-    // Possibly update the axis limits
-    if (!limits_info_[current_render_area_idx_].xmin_set && xmin < limits_info_[current_render_area_idx_].xmin())
-        limits_info_[current_render_area_idx_].set_xmin(xmin - 0.025*(xmax-xmin));
-    if (!limits_info_[current_render_area_idx_].xmax_set && xmax > limits_info_[current_render_area_idx_].xmax())
-        limits_info_[current_render_area_idx_].set_xmax(xmax + 0.025*(xmax-xmin));
-    if (!limits_info_[current_render_area_idx_].ymin_set && ymin < limits_info_[current_render_area_idx_].ymin())
-        limits_info_[current_render_area_idx_].set_ymin(ymin - 0.025*(ymax-ymin));
-    if (!limits_info_[current_render_area_idx_].ymax_set && ymax > limits_info_[current_render_area_idx_].ymax())
-        limits_info_[current_render_area_idx_].set_ymax(ymax + 0.025*(ymax-ymin));
-    if (limits_info_[current_render_area_idx_].xmin() == limits_info_[current_render_area_idx_].xmax())
-        if (limits_info_[current_render_area_idx_].xmin() == 0) {
-            limits_info_[current_render_area_idx_].set_xmin(-1.0-1e-3);
-            limits_info_[current_render_area_idx_].set_xmax( 1.0+1e-3);
-        } else {
-            limits_info_[current_render_area_idx_].set_xmin(0.9*limits_info_[current_render_area_idx_].xmin());
-            limits_info_[current_render_area_idx_].set_xmax(1.1*limits_info_[current_render_area_idx_].xmax());
+    {
+        // Get a reference to the current limits info object
+        LimitsInfo& limits_info =
+            limits_info_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_];
+
+        // Possibly update the axis limits
+        if (!limits_info.xmin_set && xmin < limits_info.xmin()) {
+            limits_info.set_xmin(xmin - 0.025*(xmax-xmin));
         }
-    if (limits_info_[current_render_area_idx_].ymin() == limits_info_[current_render_area_idx_].ymax())
-        if (limits_info_[current_render_area_idx_].ymin() == 0) {
-            limits_info_[current_render_area_idx_].set_ymin(-1.0-1e-3);
-            limits_info_[current_render_area_idx_].set_ymax( 1.0+1e-3);
-        } else {
-            limits_info_[current_render_area_idx_].set_ymin(0.9*limits_info_[current_render_area_idx_].ymin());
-            limits_info_[current_render_area_idx_].set_ymax(1.1*limits_info_[current_render_area_idx_].ymax());
+        if (!limits_info.xmax_set && xmax > limits_info.xmax()) {
+            limits_info.set_xmax(xmax + 0.025*(xmax-xmin));
         }
+        if (!limits_info.ymin_set && ymin < limits_info.ymin()) {
+            limits_info.set_ymin(ymin - 0.025*(ymax-ymin));
+        }
+        if (!limits_info.ymax_set && ymax > limits_info.ymax()) {
+            limits_info.set_ymax(ymax + 0.025*(ymax-ymin));
+        }
+    };
 
     // Copy the data
     const vec_ptr x_cpy = std::make_shared<VectorXd>();
@@ -229,7 +179,8 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     *v_cpy              = v;
 
     // Store the data
-    arrow_data_[current_render_area_idx_].emplace_back(priority,x_cpy,y_cpy,u_cpy,v_cpy,style);
+    arrow_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].emplace_back(
+        priority,x_cpy,y_cpy,u_cpy,v_cpy,style);
 
     // Sort the data
     struct {
@@ -237,7 +188,13 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
             return a.priority < b.priority;
         }
     } custom_less;
-    std::sort(arrow_data_[current_render_area_idx_].begin(),arrow_data_[current_render_area_idx_].end(),custom_less);
+    {
+        auto& arrow_data = arrow_data_[current_render_area_idx_== -1 ? 0 : current_render_area_idx_];
+        std::sort(arrow_data.begin(),arrow_data.end(),custom_less);
+    };
+
+    // Make sure that a render area is available
+    checkRenderArea();
 }
 
 void Figure::resizeEvent(QResizeEvent* event) {
@@ -247,11 +204,16 @@ void Figure::resizeEvent(QResizeEvent* event) {
     }
 }
 
-void Figure::checkRenderArea() {
+void Figure::checkLimitsAndPlotDataInfo() {
     if (current_render_area_idx_ == -1) {
+        limits_info_.emplace_back(LimitsInfo());
         line_data_.resize(1);
         arrow_data_.resize(1);
-        limits_info_.emplace_back(LimitsInfo());
+    }
+}
+
+void Figure::checkRenderArea() {
+    if (current_render_area_idx_ == -1) {
         render_areas_.push_back(new RenderArea(&line_data_[0], &arrow_data_[0], limits_info_[0], this));
         const QRect& geom = geometry();
         render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));

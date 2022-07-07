@@ -7,10 +7,7 @@
 #include <QPoint>
 #include <QMouseEvent>
 
-#include <tuple>
 #include <vector>
-#include <unordered_set>
-#include <string>
 
 #include "PlotData.hpp"
 #include "LimitsInfo.hpp"
@@ -19,9 +16,7 @@ namespace sanji_ {
 
 /* Type definitions */
 template <typename T>
-using vector     = std::vector<T>;
-template <class... Types>
-using tuple      = std::tuple<Types...>;
+using vector = std::vector<T>;
 
 class PlotArea : public QWidget {
 
@@ -37,6 +32,10 @@ explicit PlotArea(const vector<LineData>*  line_data,
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);
+void setSizeHint(const QSize& size_hint);
+
+/* Miscellaneous */
+QSize sizeHint() const override;
 
 protected:
 
@@ -56,6 +55,8 @@ const vector<ArrowData>* arrow_data_;
 QPoint selection_start_;
 QPoint selection_end_;
 bool   selection_active_;
+
+QSize size_hint_;
 
 };
 

@@ -1,9 +1,12 @@
 #include <QPainter>
+
 #include <cmath>
 #include <complex>
+
 #include "PlotArea.hpp"
 #include "Figure.hpp"
 #include "Colors.hpp"
+
 #include <iostream>
 
 namespace sanji_ {
@@ -41,9 +44,31 @@ void PlotArea::paintEvent(QPaintEvent* event) {
 
     // Create a lambda to convert x-y-coordinates to pixel coordinates
     const QRect plot_geom = geometry();
-    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] = limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
-    const auto toQPoint = [xplot_min,yplot_max,dx_to_px,dy_to_px](const double x, const double y)->QPoint {
-        return QPoint((x-xplot_min)*dx_to_px,(yplot_max-y)*dy_to_px);
+    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] =
+        limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
+    const auto toQPoint = [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px,x_mid=geom.width()/2,
+        y_mid=geom.height()/2](const double x, const double y, const double use_fixed_scaling=false,
+                               const double dx_to_px_f=0.0, const double dy_to_px_f=0.0)->QPoint {
+        if (use_fixed_scaling) {
+            return QPoint(x_mid+(x-xplot_min)*dx_to_px_f,y_mid+(yplot_max-y)*dy_to_px_f);
+        } else {
+            uint x_px, y_px;
+
+            if (xplot_min == xplot_max) {
+                assert(x == xplot_min);
+                x_px = x_mid;
+            } else {
+                x_px = (x-xplot_min)*dx_to_px;
+            }
+            if (yplot_min == yplot_max) {
+                assert(y == yplot_min);
+                y_px = y_mid;
+            } else {
+                y_px = (yplot_max-y)*dy_to_px;
+            }
+
+            return QPoint(x_px,y_px);
+        }
     };
 
     // Plot the line data
@@ -150,8 +175,8 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             const double arrow_length    = use_colormap || style.find("arrow_length") != style.end() ? style.at("arrow_length") : data_length;
 
             // Compute the coordinates of the scaled and rotated arrow
-            const double phi             = std::atan2(v(i),u(i));
-            const complex rot            = std::cos(phi)+1.0i*std::sin(phi);
+            const double    phi          = std::atan2(v(i),u(i));
+            const complex   rot          = std::cos(phi)+1.0i*std::sin(phi);
             vector<complex> tail_corners = base_tail_corners;
             vector<complex> head_corners = base_head_corners;
             if (style.find("center_arrows") != style.end()) {
@@ -169,20 +194,71 @@ void PlotArea::paintEvent(QPaintEvent* event) {
                     painter.setBrush(QBrush(QColor(to_turbo_rgb((std::log10(data_length)-std::log10(min))/(std::log10(max)-std::log10(min))))));
             }
 
-            const QPoint head_points[3] = {
-                toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[0]).real(),y(i)+(rot*tail_length*arrow_length+head_corners[0]).imag()),
-                toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[1]).real(),y(i)+(rot*tail_length*arrow_length+head_corners[1]).imag()),
-                toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[2]).real(),y(i)+(rot*tail_length*arrow_length+head_corners[2]).imag())
-            };
-            painter.drawConvexPolygon(head_points,3);
+            if (x.rows() > 1) {
+                const QPoint head_points[3] = {
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[0]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[0]).imag()),
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[1]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[1]).imag()),
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[2]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[2]).imag())
+                };
+                painter.drawConvexPolygon(head_points,3);
 
-            const QPoint tail_points[4] = {
-                toQPoint(x(i)+tail_corners[0].real(),y(i)+tail_corners[0].imag()),
-                toQPoint(x(i)+tail_corners[1].real(),y(i)+tail_corners[1].imag()),
-                toQPoint(x(i)+tail_corners[2].real(),y(i)+tail_corners[2].imag()),
-                toQPoint(x(i)+tail_corners[3].real(),y(i)+tail_corners[3].imag())
-            };
-            painter.drawConvexPolygon(tail_points,4);
+                const QPoint tail_points[4] = {
+                    toQPoint(x(i)+tail_corners[0].real(),y(i)+tail_corners[0].imag()),
+                    toQPoint(x(i)+tail_corners[1].real(),y(i)+tail_corners[1].imag()),
+                    toQPoint(x(i)+tail_corners[2].real(),y(i)+tail_corners[2].imag()),
+                    toQPoint(x(i)+tail_corners[3].real(),y(i)+tail_corners[3].imag())
+                };
+                painter.drawConvexPolygon(tail_points,4);
+            } else {
+                const double dxy_to_px = std::min(0.2*geom.height()/arrow_length,
+                                                  0.2*geom.width()/arrow_length);
+
+                const QPoint head_points[3] = {
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[0]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[0]).imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px),
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[1]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[1]).imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px),
+                    toQPoint(x(i)+(rot*tail_length*arrow_length+head_corners[2]).real(),
+                             y(i)+(rot*tail_length*arrow_length+head_corners[2]).imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px)
+                };
+                painter.drawConvexPolygon(head_points,3);
+
+                const QPoint tail_points[4] = {
+                    toQPoint(x(i)+tail_corners[0].real(),
+                             y(i)+tail_corners[0].imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px),
+                    toQPoint(x(i)+tail_corners[1].real(),
+                             y(i)+tail_corners[1].imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px),
+                    toQPoint(x(i)+tail_corners[2].real(),
+                             y(i)+tail_corners[2].imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px),
+                    toQPoint(x(i)+tail_corners[3].real(),
+                             y(i)+tail_corners[3].imag(),
+                             true,
+                             dxy_to_px,
+                             dxy_to_px)
+                };
+                painter.drawConvexPolygon(tail_points,4);
+            }
         }
     }
 
@@ -272,6 +348,14 @@ void PlotArea::mouseMoveEvent(QMouseEvent *event) {
 
 void PlotArea::setBackgroundColor(const uint32_t color) {
     background_color_ = QColor(0xffu&(color>>16),0xffu&(color>>8),0xffu&color);
+}
+
+void PlotArea::setSizeHint(const QSize& size_hint) {
+    size_hint_ = size_hint;
+}
+
+QSize PlotArea::sizeHint() const {
+    return size_hint_;
 }
 
 };
