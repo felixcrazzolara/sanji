@@ -46,6 +46,9 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     // Fetch the geometry of the this widget
     const QRect geom = geometry();
 
+    // Don't paint anything if the height is smaller than the minimum height
+    if (geom.height() < getMinHeight()) return;
+
     // Fill the background
     painter.setPen(Qt::NoPen);
     painter.setBrush(background_color_);

@@ -17,6 +17,8 @@ explicit HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QW
 /* Getter */
 uint getHeight() const;
 
+uint getMinWidth() const;
+
 /* Setter */
 void setSizeHint(const QSize& size_hint);
 

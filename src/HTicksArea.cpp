@@ -9,9 +9,10 @@
 
 namespace sanji_ {
 
-static constexpr uint FONT_SIZE   = 10;
-static constexpr uint TICK_HEIGHT = 11;
-static constexpr uint Y_MARGIN    = 2;
+static constexpr uint FONT_SIZE              = 10;
+static constexpr uint TICK_HEIGHT            = 11;
+static constexpr uint Y_MARGIN               = 2;
+static constexpr uint NUM_DIGITS_AFTER_COMMA = 5;
 
 HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area, QWidget* parent) :
     TicksArea(limits_info,plot_area,parent)
@@ -19,6 +20,24 @@ HTicksArea::HTicksArea(const LimitsInfo* limits_info, const PlotArea* plot_area,
 
 uint HTicksArea::getHeight() const {
     return QFontMetrics(QFont("Monospace",FONT_SIZE)).height() + 2*Y_MARGIN + TICK_HEIGHT;
+}
+
+uint HTicksArea::getMinWidth() const {
+    QFontMetrics fm(QFont("Monospace",FONT_SIZE));
+    char* buf = new char[NUM_DIGITS_AFTER_COMMA+1];
+
+    for (size_t i = 0; i < NUM_DIGITS_AFTER_COMMA; ++i) {
+        if (i < NUM_DIGITS_AFTER_COMMA-1) {
+            buf[i] = '0';
+        } else {
+            buf[i] = '\0';
+        }
+    }
+    const uint min_pixel_per_tick = fm.boundingRect(
+        QString::fromStdString("-0."+std::string(buf)+"e-100")).width();
+    delete[] buf;
+
+    return min_pixel_per_tick;
 }
 
 void HTicksArea::setSizeHint(const QSize& size_hint) {
@@ -37,13 +56,15 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     // Fetch the geometry of the this widget
     const QRect geom = geometry();
 
+    // Don't paint anything if the width is smaller than the minimum width
+    if (geom.width() < getMinWidth()) return;
+
     // Fill the background
     painter.setPen(Qt::NoPen);
     painter.setBrush(background_color_);
     painter.drawRect(0,0,geom.width(),geom.height());
 
     // TODO: Put these settings somewhere else
-    const uint num_digits_after_comma = 5;
 
     // Draw a thin horizontal line first
     painter.setPen(QPen(QColor(171,171,171)));
@@ -65,25 +86,16 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
     // dense.
     else {
         // Determine the minimum number of pixels per tick
-        char* buf = new char[num_digits_after_comma+1];
-        for (size_t i = 0; i < num_digits_after_comma; ++i) {
-            if (i < num_digits_after_comma-1) {
-                buf[i] = '0';
-            } else {
-                buf[i] = '\0';
-            }
-        }
-        const uint min_pixel_per_tick = fm.boundingRect(
-            QString::fromStdString("-0."+std::string(buf)+"e-100")).width();
-        delete[] buf;
+        const uint min_pixel_per_tick = getMinWidth();
 
         // Minimize num_pixel_per_tick just below num_pixel_per_tick
         int num_pixel_per_tick = -1;
         const double mult_mult = 2.0;
         double mult10          = 1.0;
         do {
-            const int xmin     = std::ceil(mult*mult10*xplot_min);
-            const int xmax     = std::floor(mult*mult10*xplot_max);
+            const int xmin = std::ceil(mult*mult10*xplot_min);
+            const int xmax = std::floor(mult*mult10*xplot_max);
+
             if (xmax-xmin+1 != 0) num_pixel_per_tick = geom.width()/(xmax-xmin+1);
             mult              *= mult_mult;
             if (mult >= 10.0) {
@@ -142,12 +154,12 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
         } else {
             // TODO: Check this again
             const double exp = std::log10(std::abs(x));
-            if (exp < num_digits_after_comma && exp >= 0.0) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-static_cast<uint>(std::floor(exp))-1)+"g\n").c_str(),x);
-            } else if (exp < 0.0 && std::abs(exp) < num_digits_after_comma-1) {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"g\n").c_str(),x);
+            if (exp < NUM_DIGITS_AFTER_COMMA && exp >= 0.0) {
+                sprintf(chr_buffer,std::string("%."+std::to_string(NUM_DIGITS_AFTER_COMMA-static_cast<uint>(std::floor(exp))-1)+"g\n").c_str(),x);
+            } else if (exp < 0.0 && std::abs(exp) < NUM_DIGITS_AFTER_COMMA-1) {
+                sprintf(chr_buffer,std::string("%."+std::to_string(NUM_DIGITS_AFTER_COMMA-1)+"g\n").c_str(),x);
             } else {
-                sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"e\n").c_str(),x);
+                sprintf(chr_buffer,std::string("%."+std::to_string(NUM_DIGITS_AFTER_COMMA-1)+"e\n").c_str(),x);
             }
         }
 
