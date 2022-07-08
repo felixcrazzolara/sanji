@@ -16,10 +16,10 @@ Q_OBJECT
 public:
 
 /* Constructor and destructor */
-explicit RenderArea(const vector<LineData>*  line_data,
-                    const vector<ArrowData>* arrow_data,
-                          LimitsInfo&        limits_info,
-                          QWidget*           parent = nullptr);
+explicit RenderArea(const LineDataWrapper*  line_data,
+                    const ArrowDataWrapper* arrow_data,
+                          LimitsInfo&       limits_info,
+                          QWidget*          parent = nullptr);
 
 /* Setter */
 void setPlotBackgroundColor(const uint32_t color);
@@ -36,6 +36,9 @@ void paintEvent(QPaintEvent* event) override;
 void resizeEvent(QResizeEvent* event) override;
 
 private:
+
+const LineDataWrapper*  line_data_;
+const ArrowDataWrapper* arrow_data_;
 
 PlotArea*   plot_area_;
 HTicksArea* tick_area_x_;

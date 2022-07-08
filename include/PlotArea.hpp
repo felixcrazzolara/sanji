@@ -7,16 +7,10 @@
 #include <QPoint>
 #include <QMouseEvent>
 
-#include <vector>
-
 #include "PlotData.hpp"
 #include "LimitsInfo.hpp"
 
 namespace sanji_ {
-
-/* Type definitions */
-template <typename T>
-using vector = std::vector<T>;
 
 class PlotArea : public QWidget {
 
@@ -25,10 +19,10 @@ Q_OBJECT
 public:
 
 /* Constructor */
-explicit PlotArea(const vector<LineData>*  line_data,
-                  const vector<ArrowData>* arrow_data,
-                        LimitsInfo*        limits_info,
-                        QWidget*           parent);
+explicit PlotArea(const LineDataWrapper*  line_data,
+                  const ArrowDataWrapper* arrow_data,
+                        LimitsInfo*       limits_info,
+                        QWidget*          parent);
 
 /* Setter */
 void setBackgroundColor(const uint32_t color);
@@ -48,9 +42,9 @@ private:
 
 QColor background_color_;
 
-const vector<LineData>*  line_data_;
-const vector<ArrowData>* arrow_data_;
-      LimitsInfo*        limits_info_;
+const LineDataWrapper*  line_data_;
+const ArrowDataWrapper* arrow_data_;
+      LimitsInfo*       limits_info_;
 
 QPoint selection_start_;
 QPoint selection_end_;

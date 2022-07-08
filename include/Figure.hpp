@@ -65,12 +65,12 @@ friend RenderArea;
 void checkLimitsAndPlotDataInfo();
 void checkAndUpdateRenderArea();
 
-QString                   fig_name_;
-int                       current_render_area_idx_;
-vector<RenderArea*>       render_areas_;
-vector<LimitsInfo>        limits_info_;
-vector<vector<LineData>>  line_data_;
-vector<vector<ArrowData>> arrow_data_;
+QString                  fig_name_;
+int                      current_render_area_idx_;
+vector<RenderArea*>      render_areas_;
+vector<LimitsInfo>       limits_info_;
+vector<LineDataWrapper>  line_data_;
+vector<ArrowDataWrapper> arrow_data_;
 
 };
 

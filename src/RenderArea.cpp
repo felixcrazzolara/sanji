@@ -7,12 +7,19 @@
 
 namespace sanji_ {
 
-RenderArea::RenderArea(const vector<LineData>*  line_data,
-                       const vector<ArrowData>* arrow_data,
-                             LimitsInfo&        limits_info,
-                             QWidget*           parent) :
-    QWidget(parent)//,
-    //plot_ui_(new PlotUI(&limits_info, this)) // TODO: Fix this
+// TODO: Put these somewhere else
+static constexpr uint PLOT_UI_WIDTH      = 90;
+static constexpr uint MIN_PLOT_UI_WIDTH  = 30;
+static constexpr uint PLOT_UI_HEIGHT     = 21;
+static constexpr uint MIN_PLOT_UI_HEIGHT = 7;
+
+RenderArea::RenderArea(const LineDataWrapper*  line_data,
+                       const ArrowDataWrapper* arrow_data,
+                             LimitsInfo&       limits_info,
+                             QWidget*          parent) :
+    QWidget(parent),
+    line_data_(line_data),
+    arrow_data_(arrow_data)
 {
     // Logically split the plot in two sides. The left one with the y-tick area and the right one with the
     // actual plot at the top and the x-tick area at the bottom.
@@ -43,6 +50,9 @@ RenderArea::RenderArea(const vector<LineData>*  line_data,
     r_v_layout->setContentsMargins(0,0,0,0);
     r_v_layout->setSpacing(0);
 
+    // Instantiate the plot UI on top of the plot area
+    plot_ui_ = new PlotUI(&limits_info, this);
+
     // Show the render area
     this->show();
 }
@@ -60,6 +70,9 @@ void RenderArea::paintEvent(QPaintEvent* event) {
 }
 
 void RenderArea::updateContent() {
+    // Nothing to do if there is no data
+    if (!(line_data_->hasData() || arrow_data_->hasData())) return;
+
     // TODO: Put these settings somewhere else
     const uint num_digits  = 5;
     const uint tick_height = 11;
@@ -127,13 +140,24 @@ void RenderArea::updateContent() {
     // Update the last y-tick area width
     tick_area_y_->last_width_ = ytick_area_width;
 
-    // Set the geometries of the tick areas, the plot area and the UI
+    // Set the geometries of the tick areas and the plot area
     tick_area_x_->setSizeHint(QSize(plot_area_width,xtick_area_height));
     tick_area_y_->setSizeHint(QSize(ytick_area_width,geom.height()-xtick_area_height));
     plot_area_->setSizeHint(QSize(plot_area_width,geom.height()-xtick_area_height));
     plot_area_->updateGeometry();
     tick_area_x_->updateGeometry();
     tick_area_y_->updateGeometry();
+
+    // Position the UI correctly
+    if (plot_area_width >= MIN_PLOT_UI_WIDTH && geom.height()-xtick_area_height >= MIN_PLOT_UI_HEIGHT) {
+        const uint plot_ui_width  = std::min(PLOT_UI_WIDTH, plot_area_width);
+        const uint plot_ui_height = std::min(PLOT_UI_HEIGHT, geom.height()-xtick_area_height);
+
+        plot_ui_->setGeometry(geom.width()-plot_ui_width, 0, plot_ui_width, plot_ui_height);
+        plot_ui_->setVisible(true);
+    } else {
+        plot_ui_->setVisible(false);
+    }
 }
 
 void RenderArea::resizeEvent(QResizeEvent* event) {

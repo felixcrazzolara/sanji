@@ -18,10 +18,10 @@ using namespace std::complex_literals;
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const vector<LineData>*  line_data,
-                   const vector<ArrowData>* arrow_data,
-                         LimitsInfo*        limits_info,
-                         QWidget*           parent) :
+PlotArea::PlotArea(const LineDataWrapper*  line_data,
+                   const ArrowDataWrapper* arrow_data,
+                         LimitsInfo*       limits_info,
+                         QWidget*          parent) :
     QWidget(parent),
     background_color_{255,255,255},
     line_data_(line_data),
@@ -72,7 +72,7 @@ void PlotArea::paintEvent(QPaintEvent* event) {
     };
 
     // Plot the line data
-    for (const auto& line_data : *line_data_) {
+    for (const auto& line_data : line_data_->c_data()) {
         // Extract variables for convenience
         const VectorXd& x     = *line_data.x;
         const MatrixXd& y     = *line_data.y;
@@ -136,7 +136,7 @@ void PlotArea::paintEvent(QPaintEvent* event) {
                                       0.5i*head_width};
 
     // Iterate through the data
-    for (const auto& arrow_data : *arrow_data_) {
+    for (const auto& arrow_data : arrow_data_->c_data()) {
         // Extract the variables for convenience
         const VectorXd& x     = *arrow_data.x;
         const VectorXd& y     = *arrow_data.y;

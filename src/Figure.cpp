@@ -75,7 +75,7 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
     *y_cpy              = y;
 
     // Store the data
-    line_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].emplace_back(
+    line_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].add(
         priority,x_cpy,y_cpy,style);
 
     // Sort the data
@@ -86,7 +86,7 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
     } custom_less;
     {
         auto& line_data = line_data_[current_render_area_idx_== -1 ? 0 : current_render_area_idx_];
-        std::sort(line_data.begin(),line_data.end(),custom_less);
+        std::sort(line_data.data().begin(),line_data.data().end(),custom_less);
     };
 
     // Make sure that a render area is available or update the current one if necessary
@@ -177,7 +177,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     *v_cpy              = v;
 
     // Store the data
-    arrow_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].emplace_back(
+    arrow_data_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].add(
         priority,x_cpy,y_cpy,u_cpy,v_cpy,style);
 
     // Sort the data
@@ -188,7 +188,7 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
     } custom_less;
     {
         auto& arrow_data = arrow_data_[current_render_area_idx_== -1 ? 0 : current_render_area_idx_];
-        std::sort(arrow_data.begin(),arrow_data.end(),custom_less);
+        std::sort(arrow_data.data().begin(),arrow_data.data().end(),custom_less);
     };
 
     // Make sure that a render area is available or update the current one if necessary

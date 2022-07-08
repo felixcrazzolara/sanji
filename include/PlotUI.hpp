@@ -1,20 +1,16 @@
+/* 
+ * Author: Felix Crazzolara
+ */ 
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
 #include <QPoint>
-#include <vector>
-#include "LimitsInfo.hpp"
 
-#define PLOT_UI_WIDTH  90
-#define PLOT_UI_HEIGHT 20
+#include "LimitsInfo.hpp"
 
 namespace sanji_ {
 
-/* Type definitions */
-template <typename T>
-using vector = std::vector<T>;
-
-class PlotUI : public QWidget {
+class PlotUI : public QFrame {
 
 Q_OBJECT
 
@@ -31,13 +27,18 @@ void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
 
-int getButtonIndex(const QPoint& point) const;
+enum class ButtonIndex {INVALID, HOME, BACKWARD, FORWARD};
+
+ButtonIndex getButtonIndex(const QPoint& point) const;
 
 QColor background_color_;
 
-int press_index_;
+ButtonIndex press_idx_;
 
 LimitsInfo* limits_info_;
+
+uint limit_x1_;
+uint limit_x2_;
 
 };
 
