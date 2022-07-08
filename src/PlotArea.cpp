@@ -264,8 +264,15 @@ void PlotArea::paintEvent(QPaintEvent* event) {
 
     // Draw the selection rectangle (if active)
     if (selection_active_) {
-        QPen pen{QColor(255,255,255)}; pen.setWidth(1);
+        // Chose the color such that it is always visible on the background
+        int r,g,b;
+        background_color_.getRgb(&r,&g,&b);
+        r = r > 127 ? r - 128 : r + 128;
+        g = g > 127 ? g - 128 : g + 128;
+        b = b > 127 ? b - 128 : b + 128;
+        QPen pen{QColor(r, g, b)}; pen.setWidth(1);
         painter.setPen(pen);
+
         painter.drawLine(selection_start_.x(),selection_start_.y(),selection_start_.x(),selection_end_.y());
         painter.drawLine(selection_start_.x(),selection_end_.y(),selection_end_.x(),selection_end_.y());
         painter.drawLine(selection_end_.x(),selection_end_.y(),selection_end_.x(),selection_start_.y());
