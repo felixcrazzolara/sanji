@@ -65,8 +65,6 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
     // Make sure that a limits info and plot data objects are available
     checkLimitsAndPlotDataInfo();
 
-    // Make sure that a render area is available
-
     // Update the limits
     limits_info_[current_render_area_idx_ == -1 ? 0 : current_render_area_idx_].update_limits(x, y);
 

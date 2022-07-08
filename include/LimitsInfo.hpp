@@ -6,7 +6,7 @@
 #include <limits>
 #include <cmath>
 
-#include <types.hpp>
+#include "types.hpp"
 
 namespace sanji_ {
 
@@ -122,24 +122,30 @@ ScalingsAndLimits getScalingsAndLimits(const double plot_width_px, const double 
 
 void update_limits(const VectorXd& x, const MatrixXd& y) {
     // Determine the min/max values
-    const double xmin = x.minCoeff();
-    const double xmax = x.maxCoeff();
-    const double ymin = y.minCoeff();
-    const double ymax = y.maxCoeff();
+    const double xmin = std::min(x.minCoeff(), xmin_value);
+    const double xmax = std::max(x.maxCoeff(), xmax_value);
+    const double ymin = std::min(y.minCoeff(), ymin_value);
+    const double ymax = std::max(y.maxCoeff(), ymax_value);
 
     // Update axis limits which are not fixed
-    if (!xmin_set && xmin < this->xmin()) {
+    if (!xmin_set) {
         set_xmin(xmin - 0.025*(xmax-xmin));
     }
-    if (!xmax_set && xmax > this->xmax()) {
+    if (!xmax_set) {
         set_xmax(xmax + 0.025*(xmax-xmin));
     }
-    if (!ymin_set && ymin < this->ymin()) {
+    if (!ymin_set) {
         set_ymin(ymin - 0.025*(ymax-ymin));
     }
-    if (!ymax_set && ymax > this->ymax()) {
+    if (!ymax_set) {
         set_ymax(ymax + 0.025*(ymax-ymin));
     }
+
+    // Update the minimum/maximum values
+    xmin_value = std::min(xmin_value, xmin);
+    xmax_value = std::max(xmax_value, xmax);
+    ymin_value = std::min(ymin_value, ymin);
+    ymax_value = std::max(ymax_value, ymax);
 }
 
 double xmin() const { return axes_limits_hist[hist_idx].xmin; }
@@ -177,15 +183,15 @@ void reset_hist_index() {
     hist_idx = 0;
 }
 
-double     xmin_value;
-double     xmax_value;
-double     ymin_value;
-double     ymax_value;
+double xmin_value;
+double xmax_value;
+double ymin_value;
+double ymax_value;
 
-bool       xmin_set;
-bool       xmax_set;
-bool       ymin_set;
-bool       ymax_set;
+bool xmin_set;
+bool xmax_set;
+bool ymin_set;
+bool ymax_set;
 
 AXES_RATIO axes_ratio;
 

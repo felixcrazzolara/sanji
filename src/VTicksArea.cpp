@@ -184,7 +184,10 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
 
         // Step to the next y-axis value considered
         y = (y*mult + 1)/mult;
-    } while (y <= ymax);
+    // By increasing y as y->(y*mult+1)/mult, it can happen that y == ymax+epsilon with epsilon>0 and very
+    // small. By comparing y to (ymax+0.1/mult) instead of ymax allows epsilon to become as large as 10%
+    // of the step values.
+    } while (y <= ymax + 0.1/mult);
 
     // Delete tick labels that are not used anymore
     for (int i = tick_labels_.size()-1; i >= label_count; --i) {
