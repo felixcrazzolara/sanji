@@ -144,7 +144,7 @@ void HTicksArea::paintEvent(QPaintEvent* event) {
             const double exp = std::log10(std::abs(x));
             if (exp < num_digits_after_comma && exp >= 0.0) {
                 sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-static_cast<uint>(std::floor(exp))-1)+"g\n").c_str(),x);
-            } else if (exp < 0.0 && exp >= num_digits_after_comma-1) {
+            } else if (exp < 0.0 && std::abs(exp) < num_digits_after_comma-1) {
                 sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"g\n").c_str(),x);
             } else {
                 sprintf(chr_buffer,std::string("%."+std::to_string(num_digits_after_comma-1)+"e\n").c_str(),x);
