@@ -140,17 +140,17 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
         getLabel(chr_buffer,y);
 
         // Determine the height of the tick label
-        const QRect label_geom   = fm.boundingRect(QString(chr_buffer));
-        const int   label_height = label_geom.height();
+        const QRect text_geom   = fm.boundingRect(QString(chr_buffer));
+        const int   text_height = text_geom.height();
 
         // Draw the horizontal tick line
         const int ycoord = toYCoord(y);
         painter.drawLine(geom.width()-tick_width,ycoord,geom.width()-1,ycoord);
 
         // Draw the tick label
-        if (label_height % 2 == 0) {
+        if (text_height % 2 == 0) {
             // Draw the label only if there's enough space
-            if (ycoord-(label_height-2)/2 >= 0 && ycoord+(label_height-2)/2 < geom.height()) {
+            if (ycoord-(text_height-2)/2 >= 0 && ycoord+(text_height-2)/2 < geom.height()) {
                 // Check if an old tick label can be reused or if a new one must be created
                 if (tick_labels_.size() <= label_count) {
                     tick_labels_.push_back(new QLabel(this));
@@ -160,13 +160,13 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
                 // Configure the label
                 tick_labels_[label_count]->setText(QString(chr_buffer));
                 tick_labels_[label_count]->setAlignment(Qt::AlignHCenter);
-                tick_labels_[label_count]->setGeometry(X_MARGIN,ycoord-(label_height-2)/2,
-                                                       label_geom.width()+X_MARGIN,label_height);
+                tick_labels_[label_count]->setGeometry(0,ycoord-(text_height-2)/2,
+                                                       text_geom.width()+2*X_MARGIN,text_height);
                 tick_labels_[label_count++]->show();
             }
         } else {
             // Draw the label only if there's enough space
-            if (ycoord-(label_height-1)/2 >= 0 && ycoord+(label_height-1)/2 < geom.height()) {
+            if (ycoord-(text_height-1)/2 >= 0 && ycoord+(text_height-1)/2 < geom.height()) {
                 // Check if an old tick label can be reused or if a new one must be created
                 if (tick_labels_.size() <= label_count) {
                     tick_labels_.push_back(new QLabel(this));
@@ -176,8 +176,8 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
                 // Configure the label
                 tick_labels_[label_count]->setText(QString(chr_buffer));
                 tick_labels_[label_count]->setAlignment(Qt::AlignHCenter);
-                tick_labels_[label_count]->setGeometry(X_MARGIN,ycoord-(label_height-1)/2,
-                                                       label_geom.width()+X_MARGIN,label_height);
+                tick_labels_[label_count]->setGeometry(0,ycoord-(text_height-1)/2,
+                                                       text_geom.width()+2*X_MARGIN,text_height);
                 tick_labels_[label_count++]->show();
             }
         }
