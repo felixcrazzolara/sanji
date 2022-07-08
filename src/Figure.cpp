@@ -89,8 +89,8 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
         std::sort(line_data.begin(),line_data.end(),custom_less);
     };
 
-    // Make sure that a render area is available
-    checkRenderArea();
+    // Make sure that a render area is available or update the current one if necessary
+    checkAndUpdateRenderArea();
 }
 
 void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority) {
@@ -191,8 +191,8 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
         std::sort(arrow_data.begin(),arrow_data.end(),custom_less);
     };
 
-    // Make sure that a render area is available
-    checkRenderArea();
+    // Make sure that a render area is available or update the current one if necessary
+    checkAndUpdateRenderArea();
 }
 
 void Figure::resizeEvent(QResizeEvent* event) {
@@ -210,12 +210,14 @@ void Figure::checkLimitsAndPlotDataInfo() {
     }
 }
 
-void Figure::checkRenderArea() {
+void Figure::checkAndUpdateRenderArea() {
     if (current_render_area_idx_ == -1) {
         render_areas_.push_back(new RenderArea(&line_data_[0], &arrow_data_[0], limits_info_[0], this));
         const QRect& geom = geometry();
         render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
         current_render_area_idx_ = 0;
+    } else {
+        render_areas_[current_render_area_idx_]->updateContent();
     }
 }
 

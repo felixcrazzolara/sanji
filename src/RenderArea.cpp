@@ -59,7 +59,7 @@ void RenderArea::paintEvent(QPaintEvent* event) {
     painter.drawRect(0,0,geom.width(),geom.height());
 }
 
-void RenderArea::resizeEvent(QResizeEvent* event) {
+void RenderArea::updateContent() {
     // TODO: Put these settings somewhere else
     const uint num_digits  = 5;
     const uint tick_height = 11;
@@ -134,6 +134,10 @@ void RenderArea::resizeEvent(QResizeEvent* event) {
     plot_area_->updateGeometry();
     tick_area_x_->updateGeometry();
     tick_area_y_->updateGeometry();
+}
+
+void RenderArea::resizeEvent(QResizeEvent* event) {
+    updateContent();
 }
 
 void RenderArea::setPlotBackgroundColor(const uint32_t color) {

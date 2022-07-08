@@ -26,6 +26,9 @@ void setPlotBackgroundColor(const uint32_t color);
 void setxTicksBackgroundColor(const uint32_t color);
 void setyTicksBackgroundColor(const uint32_t color);
 
+/* Miscellaneous */
+void updateContent();
+
 protected:
 
 void paintEvent(QPaintEvent* event) override;

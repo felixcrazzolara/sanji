@@ -63,7 +63,7 @@ private:
 friend RenderArea;
 
 void checkLimitsAndPlotDataInfo();
-void checkRenderArea();
+void checkAndUpdateRenderArea();
 
 QString                   fig_name_;
 int                       current_render_area_idx_;

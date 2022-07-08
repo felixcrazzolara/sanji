@@ -87,7 +87,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
             if (ymax-ymin+1 != 0) num_pixel_per_tick = geom.height()/(ymax-ymin+1);
             mult              *= mult_mult;
             if (mult >= 10.0) {
-                mult = 1.0;
+                mult    = 1.0;
                 mult10 *= 10.0;
             }
         } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
@@ -101,7 +101,7 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
             mult              /= mult_mult;
             const int ymin     = std::ceil(mult*yplot_min);
             const int ymax     = std::floor(mult*yplot_max);
-            num_pixel_per_tick = geom.height()/(ymax-ymin+1);
+            num_pixel_per_tick = geom.height() / (ymax-ymin+1);
         }
 
         //--> At this point it holds that num_pixel_per_tick >= min_pixel_per_tick
@@ -234,7 +234,7 @@ uint VTicksArea::getMaxLabelWidth(const uint plot_area_width, const uint plot_ar
             if (ymax-ymin+1 != 0) num_pixel_per_tick = plot_area_height / (ymax-ymin+1);
             mult              *= mult_mult;
             if (mult >= 10.0) {
-                mult = 1.0;
+                mult    = 1.0;
                 mult10 *= 10.0;
             }
         } while (num_pixel_per_tick == -1 || num_pixel_per_tick >= min_pixel_per_tick);
@@ -288,12 +288,11 @@ void VTicksArea::getLabel(char* chr_buffer, const double y) const {
     if (y == 0.0) {
         sprintf(chr_buffer,"0\n");
     } else {
-        // TODO: Check this again
         const double exp = std::log10(std::abs(y));
         if (exp < num_digits && exp >= 0.0) {
-            sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(std::floor(exp))-1)+"f\n").c_str(),static_cast<double>(y));
-        } else if (exp < 0.0 && exp >= num_digits-1) {
-            sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"f\n").c_str(),static_cast<double>(y));
+            sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-static_cast<uint>(std::floor(exp))-1)+"g\n").c_str(),static_cast<double>(y));
+        } else if (exp < 0.0 && std::abs(exp) < num_digits-1) {
+            sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"g\n").c_str(),static_cast<double>(y));
         } else {
             sprintf(chr_buffer,std::string("%."+std::to_string(num_digits-1)+"e\n").c_str(),static_cast<double>(y));
         }
