@@ -11,7 +11,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 QUIET COMPONENTS Widgets)
 if (NOT Qt6_FOUND)
     find_package(Qt5 REQUIRED COMPONENTS Widgets)
 endif()
@@ -56,7 +56,14 @@ target_include_directories(sanji
     PUBLIC include
 )
 
-target_link_libraries(sanji
-    PUBLIC  Eigen3::Eigen
-    PUBLIC  Qt::Widgets
-)
+if (Qt6_FOUND)
+    target_link_libraries(sanji
+        PUBLIC  Eigen3::Eigen
+        PUBLIC  Qt6::Widgets
+    )
+else()
+    target_link_libraries(sanji
+        PUBLIC  Eigen3::Eigen
+        PUBLIC  Qt5::Widgets
+    )
+endif()
