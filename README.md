@@ -27,3 +27,6 @@ sanji uses Qt under the LGPLv3 license. See https://www.qt.io/ or contact felix.
 
 #### Eigen
 sanji uses the MPL 2.0-licensed features of Eigen, a C++ template library for linear algebra. The source code of the Eigen library can be obtained at https://eigen.tuxfamily.org/.
+
+#### Turbo Colormap
+sanji uses the Turbo colormap by Anton Mikhailov under an Apache 2.0 license. The original source is available at https://gist.github.com/mikhailov-work/6a308c20e494d9e0ccc29036b28faa7a.
