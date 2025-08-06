@@ -1,9 +1,9 @@
+#include "RenderArea.hpp"
+
 #include <QFontMetrics>
+#include <QHBoxLayout>
 #include <QPainter>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-
-#include "RenderArea.hpp"
 
 namespace sanji_ {
 
@@ -13,29 +13,45 @@ static constexpr uint MIN_PLOT_UI_WIDTH  = 30;
 static constexpr uint PLOT_UI_HEIGHT     = 21;
 static constexpr uint MIN_PLOT_UI_HEIGHT = 7;
 
-RenderArea::RenderArea(const LineDataWrapper*  line_data,
-                       const ArrowDataWrapper* arrow_data,
-                             LimitsInfo&       limits_info,
-                             QWidget*          parent) :
+RenderArea::RenderArea(const Image &image, LimitsInfo &limits_info, QWidget *parent) :
     QWidget(parent),
-    line_data_(line_data),
-    arrow_data_(arrow_data)
+    line_data_{nullptr},
+    arrow_data_{nullptr}
+{
+    // Instantiate the plot area
+    plot_area_ = new PlotArea(this, &limits_info, image);
+
+    // Use a layout to organize the plot area
+    QHBoxLayout *h_layout = new QHBoxLayout(this);
+    h_layout->addWidget(plot_area_);
+    h_layout->setContentsMargins(0,0,0,0);
+    h_layout->setSpacing(0);
+
+    // Show the render area
+    this->show();
+}
+
+RenderArea::RenderArea(const LineDataWrapper *line_data, const ArrowDataWrapper *arrow_data,
+        LimitsInfo &limits_info, QWidget *parent) :
+    QWidget(parent),
+    line_data_{line_data},
+    arrow_data_{arrow_data}
 {
     // Logically split the plot in two sides. The left one with the y-tick area and the right one with the
     // actual plot at the top and the x-tick area at the bottom.
-    QHBoxLayout* h_layout = new QHBoxLayout(this);
-    QWidget*     l_side   = new QWidget(this);
-    QWidget*     r_side   = new QWidget(this);
+    QHBoxLayout *h_layout = new QHBoxLayout(this);
+    QWidget     *l_side   = new QWidget(this);
+    QWidget     *r_side   = new QWidget(this);
     h_layout->addWidget(l_side);
     h_layout->addWidget(r_side);
     h_layout->setContentsMargins(0,0,0,0);
     h_layout->setSpacing(0);
 
     // Instantiate the plot area
-    plot_area_ = new PlotArea(line_data, arrow_data, &limits_info, r_side);
+    plot_area_ = new PlotArea(r_side, line_data, arrow_data, &limits_info);
 
     // On the left side, put the y-tick area at the top and some stretch below
-    QVBoxLayout* l_v_layout = new QVBoxLayout(l_side);
+    QVBoxLayout *l_v_layout = new QVBoxLayout(l_side);
     tick_area_y_ = new VTicksArea(&limits_info, plot_area_, l_side);
     l_v_layout->addWidget(tick_area_y_);
     l_v_layout->addStretch();
@@ -43,7 +59,7 @@ RenderArea::RenderArea(const LineDataWrapper*  line_data,
     l_v_layout->setSpacing(0);
 
     // On the right side, put the plot area at the top and the x-tick area below
-    QVBoxLayout* r_v_layout = new QVBoxLayout(r_side);
+    QVBoxLayout *r_v_layout = new QVBoxLayout(r_side);
     tick_area_x_ = new HTicksArea(&limits_info, plot_area_, r_side);
     r_v_layout->addWidget(plot_area_);
     r_v_layout->addWidget(tick_area_x_);
@@ -57,7 +73,7 @@ RenderArea::RenderArea(const LineDataWrapper*  line_data,
     this->show();
 }
 
-void RenderArea::paintEvent(QPaintEvent* event) {
+void RenderArea::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
 
     // Fetch the geometry of the this widget
@@ -65,13 +81,13 @@ void RenderArea::paintEvent(QPaintEvent* event) {
 
     // Fill the background
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(QColor(255,255,255)));
-    painter.drawRect(0,0,geom.width(),geom.height());
+    painter.setBrush(QBrush(QColor(255, 255, 255)));
+    painter.drawRect(0, 0, geom.width(), geom.height());
 }
 
 void RenderArea::updateContent() {
     // Nothing to do if there is no data
-    if (!(line_data_->hasData() || arrow_data_->hasData())) return;
+    if (!(line_data_ && line_data_->hasData()) && !(arrow_data_ && arrow_data_->hasData())) return;
 
     // TODO: Put these settings somewhere else
     const uint num_digits  = 5;
@@ -141,8 +157,8 @@ void RenderArea::updateContent() {
     tick_area_y_->last_width_ = ytick_area_width;
 
     // Set the geometries of the tick areas and the plot area
-    tick_area_x_->setSizeHint(QSize(plot_area_width,xtick_area_height));
-    tick_area_y_->setSizeHint(QSize(ytick_area_width,geom.height()-xtick_area_height));
+    tick_area_x_->setSizeHint(QSize(plot_area_width, xtick_area_height));
+    tick_area_y_->setSizeHint(QSize(ytick_area_width, geom.height()-xtick_area_height));
     plot_area_->setSizeHint(QSize(plot_area_width,geom.height()-xtick_area_height));
     plot_area_->updateGeometry();
     tick_area_x_->updateGeometry();

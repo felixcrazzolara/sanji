@@ -1,12 +1,11 @@
+#include "Colors.hpp"
+#include "Figure.hpp"
+#include "PlotArea.hpp"
+
 #include <QPainter>
 
 #include <cmath>
 #include <complex>
-
-#include "PlotArea.hpp"
-#include "Figure.hpp"
-#include "Colors.hpp"
-
 #include <iostream>
 
 namespace sanji_ {
@@ -18,142 +17,178 @@ using namespace std::complex_literals;
 /* Type definitions */
 using complex = std::complex<double>;
 
-PlotArea::PlotArea(const LineDataWrapper*  line_data,
-                   const ArrowDataWrapper* arrow_data,
-                         LimitsInfo*       limits_info,
-                         QWidget*          parent) :
+static QImage::Format getImageFormat(const Image &image) {
+    if (image.num_channels() == 3) {
+        return QImage::Format_RGB888;
+    } else if (image.num_channels() == 4) {
+        return QImage::Format_RGBA8888;
+    } else {
+        std::cerr << "Error in sanji_::getImageFormat: Image has " << image.num_channels();
+        std::cerr << " channels." << std::endl;
+        exit(-1);
+    }
+}
+
+PlotArea::PlotArea(QWidget *parent, LimitsInfo *limits_info, const Image &image) :
+    QWidget(parent),
+    line_data_{nullptr},
+    arrow_data_{nullptr},
+    limits_info_{limits_info},
+    image_{image.data().data(), image.width(), image.height(), getImageFormat(image)}
+{}
+
+PlotArea::PlotArea(QWidget *parent, const LineDataWrapper *line_data,
+        const ArrowDataWrapper *arrow_data, LimitsInfo *limits_info) :
     QWidget(parent),
     background_color_{255,255,255},
-    line_data_(line_data),
-    arrow_data_(arrow_data),
-    limits_info_(limits_info),
+    line_data_{line_data},
+    arrow_data_{arrow_data},
+    limits_info_{limits_info},
     selection_active_{false}
 {}
 
-void PlotArea::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);
-    painter.setRenderHints(QPainter::Antialiasing);
-
-    // Fetch the geometry of the this widget
-    const QRect geom = geometry();
-
-    // Fill the background
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(background_color_);
-    painter.drawRect(0,0,geom.width(),geom.height());
-
-    // Create a lambda to convert x-y-coordinates to pixel coordinates
-    const QRect plot_geom = geometry();
-    const auto [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px] =
-        limits_info_->getScalingsAndLimits(plot_geom.width(),plot_geom.height());
-    const auto toQPoint = [xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px,x_mid=geom.width()/2,
-        y_mid=geom.height()/2](const double x, const double y, const double use_fixed_scaling=false,
-                               const double dx_to_px_f=0.0, const double dy_to_px_f=0.0)->QPoint {
-        if (use_fixed_scaling) {
-            return QPoint(x_mid+(x-xplot_min)*dx_to_px_f,y_mid+(yplot_max-y)*dy_to_px_f);
+/**
+ * @brief Converts x-y-coordinates to pixel coordinates.
+ *
+ */
+static QPoint toQPoint(const ScalingsAndLimits &s, const int &x_mid, const int &y_mid,
+        const double &x, const double &y, const double use_fixed_scaling = false,
+        const double dx_to_px_f = 0.0, const double dy_to_px_f = 0.0) {
+    if (use_fixed_scaling) {
+        return QPoint(x_mid + (x - s.xplot_min) * dx_to_px_f,
+                      y_mid + (s.yplot_max - y) * dy_to_px_f);
+    } else {
+        uint x_px, y_px;
+        if (s.xplot_min == s.xplot_max) {
+            assert(x == s.xplot_min);
+            x_px = x_mid;
         } else {
-            uint x_px, y_px;
-
-            if (xplot_min == xplot_max) {
-                assert(x == xplot_min);
-                x_px = x_mid;
-            } else {
-                x_px = (x-xplot_min)*dx_to_px;
-            }
-            if (yplot_min == yplot_max) {
-                assert(y == yplot_min);
-                y_px = y_mid;
-            } else {
-                y_px = (yplot_max-y)*dy_to_px;
-            }
-
-            return QPoint(x_px,y_px);
+            x_px = (x - s.xplot_min) * s.dx_to_px;
         }
+        if (s.yplot_min == s.yplot_max) {
+            assert(y == s.yplot_min);
+            y_px = y_mid;
+        } else {
+            y_px = (s.yplot_max - y) * s.dy_to_px;
+        }
+
+        return QPoint(x_px, y_px);
+    }
+}
+
+void PlotArea::plotLineData(QPainter &painter, const QRect &geom, const ScalingsAndLimits &s) {
+    // Create a wrapper around toQPoint convenience
+    const auto toQPoint = [&s,&geom](const double &x, const double &y) -> QPoint {
+        return sanji_::toQPoint(s, geom.width()/2, geom.height()/2, x, y);
     };
 
-    // Plot the line data
-    for (const auto& line_data : line_data_->c_data()) {
+    for (const auto &line_data : line_data_->c_data()) {
         // Extract variables for convenience
-        const VectorXd& x     = *line_data.x;
-        const MatrixXd& y     = *line_data.y;
-        const Style&    style =  line_data.style;
+        const VectorXd &x = *line_data.x;
+        const MatrixXd &y = *line_data.y;
+        const Style &style = line_data.style;
 
         // Configure the painting color
         uint32_t color;
-        if (style.find("color") == style.end()) color = BLACK;
-        else                                    color = style.at("color");
+        if (style.find("color") == style.end()) {
+            color = BLACK;
+        } else {
+            color = style.at("color");
+        }
+
+        // Define the line color
+        const QColor line_color = QColor((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 
         if (style.find("line_style") != style.end() && style.at("line_style") == 'o') {
             // Configure the painter
             painter.setPen(Qt::NoPen);
-            painter.setBrush(QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
+            painter.setBrush(QBrush(line_color));
 
             // Draw the data
             if (x.rows() == 1) {
-                std::cout << "This is currently not implemented (from RenderArea::paintEvent)" << std::endl; // TODO: Implement this
-            } else
-                for (uint i = 0; i < x.rows(); ++i)
-                    for (uint j = 0; j < y.cols(); ++j)
-                        painter.drawEllipse(toQPoint(x(i),y(i,j)),4,4);
+                std::cerr << "Error in PlotArea::plotLineData: This is currently not ";
+                std::cerr << "implemented." << std::endl;
+                exit(-1);
+            } else {
+                for (size_t i = 0; i < x.rows(); ++i) {
+                    for (size_t j = 0; j < y.cols(); ++j) {
+                        painter.drawEllipse(toQPoint(x(i), y(i, j)), 4, 4);
+                    }
+                }
+            }
         } else {
             // Configure the pen
-            QPen pen(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff));
-            if (style.find("line_style") == style.end()) pen.setStyle(Qt::SolidLine);
-            else {
-                if (style.at("line_style") == '-')      pen.setStyle(Qt::SolidLine);
-                else if (style.at("line_style") == '.') pen.setStyle(Qt::DotLine);
-                else {
-                    std::cout << "'"+std::to_string((char) style.at("line_style"))+"' is not a valid 'line_style'." << std::endl;
-                    abort();
+            QPen pen(line_color);
+            if (style.find("line_style") == style.end()) {
+                pen.setStyle(Qt::SolidLine);
+            } else {
+                if (style.at("line_style") == '-') {
+                    pen.setStyle(Qt::SolidLine);
+                } else if (style.at("line_style") == '.') {
+                    pen.setStyle(Qt::DotLine);
+                } else {
+                    std::cerr << "'"+std::to_string((char) style.at("line_style"))+"' is not a ";
+                    std::cerr << "valid 'line_style'." << std::endl;
+                    exit(-1);
                 }
             }
             painter.setPen(pen);
 
             // Draw the data
             if (x.rows() == 1) {
-                std::cout << "This is currently not implemented (from RenderArea::paintEvent)" << std::endl; // TODO: Implement this
-            } else
-                for (uint i = 0; i < x.rows()-1; ++i)
-                    for (uint j = 0; j < y.cols(); ++j)
-                        painter.drawLine(toQPoint(x(i),y(i,j)),toQPoint(x(i+1),y(i+1,j)));
+                std::cerr << "Error in PlotArea::plotLineData: This is currently not implemented ";
+                std::cerr << "(from RenderArea::paintEvent)" << std::endl;
+                exit(-1);
+            } else {
+                for (size_t i = 0; i < x.rows()-1; ++i) {
+                    for (size_t j = 0; j < y.cols(); ++j) {
+                        painter.drawLine(toQPoint(x(i), y(i,j)), toQPoint(x(i+1), y(i+1,j)));
+                    }
+                }
+            }
         }
     }
+}
 
-    /* Plot the arrow data */
+void PlotArea::plotArrowData(QPainter &painter, const QRect &geom, const ScalingsAndLimits &s) {
+    // Create a wrapper around toQPoint convenience
+    const auto toQPoint = [&s,&geom](const double &x, const double &y,
+            const double use_fixed_scaling = false, const double dx_to_px_f = 0.0,
+            const double dy_to_px_f = 0.0) -> QPoint {
+        return sanji_::toQPoint(s, geom.width()/2, geom.height()/2, x, y, use_fixed_scaling,
+            dx_to_px_f, dy_to_px_f);
+    };
+
     painter.setPen(Qt::NoPen);
 
     // Define the unit arrow
-    const double          tail_width  = 0.2;
-    const double          tail_length = 0.7;
-    const vector<complex> base_tail_corners{           -0.5i*tail_width,
-                                      tail_length-0.5i*tail_width,
-                                      tail_length+0.5i*tail_width,
-                                                  0.5i*tail_width};
-    const double          head_width  = 0.4;
-    const double          head_length = 0.3;
-    const vector<complex> base_head_corners{-0.5i*head_width,
-                                      head_length,
-                                      0.5i*head_width};
+    const double tail_width  = 0.2;
+    const double tail_length = 0.7;
+    const vector<complex> base_tail_corners{ -0.5i*tail_width,
+                                  tail_length-0.5i*tail_width,
+                                  tail_length+0.5i*tail_width,
+                                              0.5i*tail_width};
+    const double head_width  = 0.4;
+    const double head_length = 0.3;
+    const vector<complex> base_head_corners{-0.5i*head_width, head_length, 0.5i*head_width};
 
     // Iterate through the data
-    for (const auto& arrow_data : arrow_data_->c_data()) {
+    for (const auto &arrow_data : arrow_data_->c_data()) {
         // Extract the variables for convenience
-        const VectorXd& x     = *arrow_data.x;
-        const VectorXd& y     = *arrow_data.y;
-        const VectorXd& u     = *arrow_data.u;
-        const VectorXd& v     = *arrow_data.v;
-        const Style&    style =  arrow_data.style;
+        const VectorXd &x     = *arrow_data.x;
+        const VectorXd &y     = *arrow_data.y;
+        const VectorXd &u     = *arrow_data.u;
+        const VectorXd &v     = *arrow_data.v;
+        const Style    &style =  arrow_data.style;
 
-        /* Configure the brush */
-        bool use_colormap          = false;
+        // Configure the brush
+        bool use_colormap = false;
         bool heatmap_use_linscale  = true;
-        double min,max;
+        double min, max;
         if (style.find("use_colormap") == style.end()) {
             // Color
-            uint32_t color;
-            if (style.find("color") == style.end()) color = BLACK;
-            else                                    color = style.at("color");
-            painter.setBrush(QBrush(QColor((color>>16)&0xff,(color>>8)&0xff,color&0xff)));
+            const uint32_t color = style.find("color") == style.end() ? BLACK : style.at("color");
+            painter.setBrush(QBrush(QColor((color>>16) & 0xff, (color>>8) & 0xff, color & 0xff)));
         } else {
             // Check the arguments
             if (style.find("colormap") == style.end()) throw new std::runtime_error("Must provided argument 'colormap' when using the option 'use_colormap' for 'quiver'.");
@@ -169,10 +204,10 @@ void PlotArea::paintEvent(QPaintEvent* event) {
         }
 
         // Draw the data
-        for (uint i = 0; i < x.rows(); ++i) {
+        for (size_t i = 0; i < x.rows(); ++i) {
             // Define the arrow length
-            const double data_length     = std::sqrt(v(i)*v(i)+u(i)*u(i));
-            const double arrow_length    = use_colormap || style.find("arrow_length") != style.end() ? style.at("arrow_length") : data_length;
+            const double data_length  = std::sqrt(v(i)*v(i)+u(i)*u(i));
+            const double arrow_length = use_colormap || style.find("arrow_length") != style.end() ? style.at("arrow_length") : data_length;
 
             // Compute the coordinates of the scaled and rotated arrow
             const double    phi          = std::atan2(v(i),u(i));
@@ -183,8 +218,8 @@ void PlotArea::paintEvent(QPaintEvent* event) {
                 for (complex& c : tail_corners) c -= 0.5;
                 for (complex& c : head_corners) c -= 0.5;
             }
-            for (auto& corner : tail_corners) corner *= rot*arrow_length;
-            for (auto& corner : head_corners) corner *= rot*arrow_length;
+            for (auto &corner : tail_corners) corner *= rot*arrow_length;
+            for (auto &corner : head_corners) corner *= rot*arrow_length;
 
             // Possibly configure the brush
             if (use_colormap) {
@@ -261,6 +296,42 @@ void PlotArea::paintEvent(QPaintEvent* event) {
             }
         }
     }
+}
+
+void PlotArea::plotImageData(QPainter &painter, const QRect &geom) {
+    if (!image_.isNull()) {
+        painter.drawImage(geom, image_);
+    }
+}
+
+void PlotArea::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing);
+
+    // Fetch the geometry of the this widget
+    const QRect &geom = geometry();
+
+    // Fill the background
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(background_color_);
+    painter.drawRect(0, 0, geom.width(), geom.height());
+
+    // Get the current scalings and limits
+    const ScalingsAndLimits scalings_and_limits =
+        limits_info_->getScalingsAndLimits(geom.width(), geom.height());
+
+    if (line_data_) {
+        // Plot the line data
+        plotLineData(painter, geom, scalings_and_limits);
+    }
+
+    if (arrow_data_) {
+        // Plot the arrow data
+        plotArrowData(painter, geom, scalings_and_limits);
+    }
+
+    // Plot the image data
+    plotImageData(painter, geom);
 
     // Draw the selection rectangle (if active)
     if (selection_active_) {
@@ -273,10 +344,14 @@ void PlotArea::paintEvent(QPaintEvent* event) {
         QPen pen{QColor(r, g, b)}; pen.setWidth(1);
         painter.setPen(pen);
 
-        painter.drawLine(selection_start_.x(),selection_start_.y(),selection_start_.x(),selection_end_.y());
-        painter.drawLine(selection_start_.x(),selection_end_.y(),selection_end_.x(),selection_end_.y());
-        painter.drawLine(selection_end_.x(),selection_end_.y(),selection_end_.x(),selection_start_.y());
-        painter.drawLine(selection_end_.x(),selection_start_.y(),selection_start_.x(),selection_start_.y());
+        painter.drawLine(selection_start_.x(), selection_start_.y(), selection_start_.x(),
+            selection_end_.y());
+        painter.drawLine(selection_start_.x(), selection_end_.y(), selection_end_.x(),
+            selection_end_.y());
+        painter.drawLine(selection_end_.x(), selection_end_.y(), selection_end_.x(),
+            selection_start_.y());
+        painter.drawLine(selection_end_.x(), selection_start_.y(), selection_start_.x(),
+            selection_start_.y());
     }
 }
 

@@ -1,13 +1,17 @@
 #pragma once
 
+#include "Figure.hpp"
+
 #include <QString>
 #include <QApplication>
+
 #include <Eigen/Dense>
-#include <string>
-#include <vector>
+
+#include "Image.hpp"
+
 #include <string>
 #include <unordered_map>
-#include "Figure.hpp"
+#include <vector>
 
 namespace sanji {
 
@@ -24,6 +28,8 @@ sh_fig_ptr figure();
 sh_fig_ptr figure(const QString fig_name);
 
 void plot(const VectorXd& x, const MatrixXd& y, const Style& style={}, const int priority=0);
+
+void imshow(const Image &img);
 
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style);
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);

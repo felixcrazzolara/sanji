@@ -1,10 +1,12 @@
-#include <QPainter>
+#include "Figure.hpp"
+#include "VTicksArea.hpp"
+
 #include <QFontMetrics>
+#include <QPainter>
 
 #include <stdio.h>
 
-#include "VTicksArea.hpp"
-#include "Figure.hpp"
+#include <iostream>
 
 namespace sanji_ {
 
@@ -136,11 +138,11 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
     };
 
     // Iterate through the y-axis values at the tick positions
-    double y           = ymin;
-    int    label_count = 0;
+    double y = ymin;
+    int label_count = 0;
     do {
         // Convert the y-axis value to a string
-        getLabel(chr_buffer,y);
+        getLabel(chr_buffer, y);
 
         // Determine the height of the tick label
         const QRect text_geom   = fm.boundingRect(QString(chr_buffer));
@@ -186,7 +188,10 @@ void VTicksArea::paintEvent(QPaintEvent* event) {
         }
 
         // Step to the next y-axis value considered
-        y = (y*mult + 1)/mult;
+        y = (y*mult + 1) / mult;
+        if (std::abs(y) < 1e-17) {
+            y = 0;
+        }
     // By increasing y as y->(y*mult+1)/mult, it can happen that y == ymax+epsilon with epsilon>0 and very
     // small. By comparing y to (ymax+0.1/mult) instead of ymax allows epsilon to become as large as 10%
     // of the step values.

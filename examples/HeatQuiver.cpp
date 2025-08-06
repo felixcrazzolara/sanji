@@ -1,6 +1,7 @@
-#include <cmath>
-#include "Sanji.hpp"
 #include "Colors.hpp"
+#include "Sanji.hpp"
+
+#include <cmath>
 
 using namespace sanji::colors;
 
@@ -8,13 +9,13 @@ using namespace sanji::colors;
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
 
-int main(int argc, char* argv[]) {
+void heatQuiver(int argc, char* argv[]) {
     // Initialize this as a Qt application
     QApplication app(argc, argv);
     sanji::init();
 
     // Create a curve
-    uint Nx = 10;
+    const uint Nx = 10u;
     VectorXd x(Nx*Nx);
     VectorXd y(Nx*Nx);
     VectorXd u(Nx*Nx);
@@ -32,7 +33,9 @@ int main(int argc, char* argv[]) {
 
     // Plot the data
     sanji::figure("Simple data");
-    sanji::quiver(x,y,u,v,{{"arrow_length",0.5},{"use_colormap",1},{"colormap",TURBO},{"min",1},{"max",Nx*Nx}});
+    sanji::quiver(x, y, u, v,
+        {{"arrow_length", 0.5}, {"use_colormap", 1}, {"colormap", TURBO}, {"min", 1},
+         {"max", Nx * Nx}});
     sanji::setPlotBackgroundColor(BLACK);
     sanji::setAxesRatio("equal");
 

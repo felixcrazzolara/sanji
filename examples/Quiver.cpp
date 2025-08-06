@@ -1,8 +1,7 @@
-#include <cmath>
-#include "Sanji.hpp"
 #include "Colors.hpp"
+#include "Sanji.hpp"
 
-#include <iostream>
+#include <cmath>
 
 using namespace sanji::colors;
 
@@ -10,13 +9,13 @@ using namespace sanji::colors;
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
 
-int main(int argc, char* argv[]) {
+void quiver(int argc, char* argv[]) {
     // Initialize this as a Qt application
     QApplication app(argc, argv);
     sanji::init();
 
     // Create a curve
-    uint Nx = 1;
+    const uint Nx = 1;
     VectorXd x(Nx);
     VectorXd y(Nx);
     VectorXd u(Nx);

@@ -1,19 +1,21 @@
 #pragma once
 
-#include <QWidget>
+#include "Colors.hpp"
+#include "LimitsInfo.hpp"
+#include "RenderArea.hpp"
+
 #include <QPen>
+#include <QWidget>
 
 #include <Eigen/Dense>
 
-#include <memory>
-#include <vector>
-#include <tuple>
-#include <string>
-#include <unordered_map>
+#include "Image.hpp"
 
-#include "RenderArea.hpp"
-#include "Colors.hpp"
-#include "LimitsInfo.hpp"
+#include <memory>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
 
 namespace sanji_ {
 
@@ -42,6 +44,7 @@ virtual ~Figure();
 
 /* Plotting */
 void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority);
+void imshow(const Image &img);
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority);
 
 /* Setter */
@@ -71,6 +74,7 @@ vector<RenderArea*>      render_areas_;
 vector<LimitsInfo>       limits_info_;
 vector<LineDataWrapper>  line_data_;
 vector<ArrowDataWrapper> arrow_data_;
+vector<Image>            images_;
 
 };
 

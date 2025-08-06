@@ -11,8 +11,14 @@
 namespace sanji_ {
 
 /* Type definitions */
-
-using ScalingsAndLimits = tuple<double,double,double,double,double,double>;
+struct ScalingsAndLimits {
+    const double xplot_min;
+    const double xplot_max;
+    const double yplot_min;
+    const double yplot_max;
+    const double dx_to_px;
+    const double dy_to_px;
+};
 
 struct AxesLimits {
 
@@ -117,7 +123,7 @@ ScalingsAndLimits getScalingsAndLimits(const double plot_width_px, const double 
             }
         }
     }
-    return {xplot_min,xplot_max,yplot_min,yplot_max,dx_to_px,dy_to_px};
+    return {xplot_min, xplot_max, yplot_min, yplot_max, dx_to_px, dy_to_px};
 }
 
 void update_limits(const VectorXd& x, const MatrixXd& y) {

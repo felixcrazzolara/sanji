@@ -49,6 +49,14 @@ void plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int pr
     gbl_fig_holder[gbl_current_fig_index]->plot(x,y,style,priority);
 }
 
+void imshow(const Image &img) {
+    // Make sure that a figure is available
+    if (gbl_current_fig_index == -1) figure();
+
+    // Plot the data
+    gbl_fig_holder[gbl_current_fig_index]->imshow(img);
+}
+
 void quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, const VectorXd& v, const Style& style, const int priority) {
     if (x.rows() == 0) return;
 

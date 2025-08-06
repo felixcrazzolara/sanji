@@ -1,5 +1,5 @@
-#include "Sanji.hpp"
 #include "Colors.hpp"
+#include "Sanji.hpp"
 
 using namespace sanji::colors;
 
@@ -7,7 +7,7 @@ using namespace sanji::colors;
 using VectorXd = Eigen::VectorXd;
 using MatrixXd = Eigen::MatrixXd;
 
-int main(int argc, char* argv[]) {
+void dotPlot(int argc, char* argv[]) {
     // Initialize this as a Qt application
     QApplication app(argc, argv);
     sanji::init();
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     // Plot the data
     sanji::figure("Dot plot example");
-    sanji::plot(x,y,{{"line_style",'o'}});
+    sanji::plot(x, y, {{"line_style", 'o'}});
 
     // Execute the application
     app.exec();

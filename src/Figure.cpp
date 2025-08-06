@@ -1,16 +1,16 @@
 /* 
  * Author: Felix Crazzolara
  */ 
-#include <vector>
+#include "Colors.hpp"
+#include "Figure.hpp"
+#include "HTicksArea.hpp"
+#include "PlotArea.hpp"
+#include "VTicksArea.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-
-#include "Figure.hpp"
-#include "PlotArea.hpp"
-#include "HTicksArea.hpp"
-#include "VTicksArea.hpp"
-#include "Colors.hpp"
+#include <vector>
 
 namespace sanji_ {
 
@@ -25,7 +25,7 @@ int                gbl_current_fig_index;
 vector<sh_fig_ptr> gbl_fig_holder;
 vector<bool>       gbl_free_fig_indices;
 
-Figure::Figure(const QString& fig_name) {
+Figure::Figure(const QString &fig_name) {
     // Set miscellaneous variables
     current_render_area_idx_ = -1;
 
@@ -37,7 +37,7 @@ Figure::Figure(const QString& fig_name) {
         if (gbl_free_fig_indices[i]) {
             gbl_current_fig_index   = i;
             gbl_free_fig_indices[i] = false;
-            fig_name_               = fig_name=="" ? QString::number(i) : fig_name;
+            fig_name_ = fig_name == "" ? QString::number(i) : fig_name;
             setWindowTitle(fig_name_);
             return;
         }
@@ -51,8 +51,11 @@ Figure::Figure(const QString& fig_name) {
 }
 
 Figure::~Figure() {
-    for (const RenderArea* render_area : render_areas_)
-        if (render_area) delete render_area;
+    for (const RenderArea* render_area : render_areas_) {
+        if (render_area) {
+            delete render_area;
+        }
+    }
 }
 
 void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, const int priority) {
@@ -88,6 +91,19 @@ void Figure::plot(const VectorXd& x, const MatrixXd& y, const Style& style, cons
         auto& line_data = line_data_[current_render_area_idx_== -1 ? 0 : current_render_area_idx_];
         std::sort(line_data.data().begin(),line_data.data().end(),custom_less);
     };
+
+    // Make sure that a render area is available or update the current one if necessary
+    checkAndUpdateRenderArea();
+}
+
+void Figure::imshow(const Image &img) {
+    // Store the image
+    images_.push_back(img);
+
+    // Make sure that a limits info and plot data objects are available
+    if (current_render_area_idx_ == -1) {
+        limits_info_.emplace_back(LimitsInfo());
+    }
 
     // Make sure that a render area is available or update the current one if necessary
     checkAndUpdateRenderArea();
@@ -197,8 +213,8 @@ void Figure::quiver(const VectorXd& x, const VectorXd& y, const VectorXd& u, con
 
 void Figure::resizeEvent(QResizeEvent* event) {
     if (current_render_area_idx_ >= 0) {
-        const QRect& geom = geometry();
-        render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
+        const QRect &geom = geometry();
+        render_areas_.back()->setGeometry(QRect(0, 0, geom.width(), geom.height()));
     }
 }
 
@@ -212,9 +228,16 @@ void Figure::checkLimitsAndPlotDataInfo() {
 
 void Figure::checkAndUpdateRenderArea() {
     if (current_render_area_idx_ == -1) {
-        render_areas_.push_back(new RenderArea(&line_data_[0], &arrow_data_[0], limits_info_[0], this));
-        const QRect& geom = geometry();
-        render_areas_.back()->setGeometry(QRect(0,0,geom.width(),geom.height()));
+        if (line_data_.size() > 0) {
+            render_areas_.push_back(new RenderArea{&line_data_[0], &arrow_data_[0],
+                limits_info_[0], this});
+        } else if (images_.size() > 0) {
+            render_areas_.push_back(new RenderArea(images_[0], limits_info_[0], this));
+        } else {
+            return;
+        }
+        const QRect &geom = geometry();
+        render_areas_.back()->setGeometry(QRect(0, 0, geom.width(), geom.height()));
         current_render_area_idx_ = 0;
     } else {
         render_areas_[current_render_area_idx_]->updateContent();
@@ -222,9 +245,11 @@ void Figure::checkAndUpdateRenderArea() {
 }
 
 void Figure::setAxesRatio(const std::string& axes_ratio) {
-    if (current_render_area_idx_ != -1)
-        if (axes_ratio == "equal")
+    if (current_render_area_idx_ != -1) {
+        if (axes_ratio == "equal") {
             limits_info_[current_render_area_idx_].axes_ratio = LimitsInfo::AXES_RATIO::EQUAL;
+        }
+    }
 }
 
 void Figure::setxmin(const double xmin) {
